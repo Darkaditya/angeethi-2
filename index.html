@@ -1,0 +1,2576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Angeethi — Fine Indian Dining</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#8B1E1E;
+    --maroon-dark:#5C1010;
+    --saffron:#F28C28;
+    --saffron-light:#FFD79A;
+    --cream:#FFF4E0;
+    --cream-alt:#FBEAC9;
+    --ink:#2B2118;
+    --gold:#C9A15A;
+    --white:#FFFDF8;
+    --green:#3D6B4A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Jost', sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Marcellus', serif; letter-spacing:.02em; }
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  img{ max-width:100%; display:block; }
+  [contenteditable="true"]{ outline-offset:4px; border-radius:2px; }
+  [contenteditable="true"]:hover{ outline:1px dashed var(--gold); cursor:text; }
+  [contenteditable="true"]:focus{ outline:1.5px dashed var(--saffron); background:rgba(242,140,40,.06); }
+  .edit-badge{
+    display:none;
+    position:fixed; bottom:18px; right:18px; z-index:999;
+    background:var(--maroon); color:var(--white); font-size:12px;
+    padding:9px 16px; border-radius:30px; box-shadow:0 6px 18px rgba(0,0,0,.25);
+    font-family:'Jost'; letter-spacing:.04em;
+  }
+
+  /* --- ember divider, the signature motif --- */
+  .ember-divider{ display:flex; align-items:center; justify-content:center; gap:14px; margin:0 auto; width:fit-content; }
+  .ember-divider .line{ height:1px; width:56px; background:linear-gradient(90deg, transparent, var(--gold)); }
+  .ember-divider .line.r{ background:linear-gradient(270deg, transparent, var(--gold)); }
+  .ember-divider .dot{ width:7px; height:7px; border-radius:50%; background:var(--saffron); box-shadow:0 0 12px 3px rgba(242,140,40,.55); }
+
+  .eyebrow{
+    display:flex; align-items:center; gap:8px; justify-content:center;
+    text-transform:uppercase; letter-spacing:.28em; font-size:12px; color:var(--maroon);
+    font-weight:500; margin-bottom:14px;
+  }
+  .eyebrow::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--saffron); box-shadow:0 0 8px 2px rgba(242,140,40,.6); }
+
+  /* ============ VIEW SWITCHER (demo control, not part of live site) ============ */
+  .view-switcher{
+    position:sticky; top:0; z-index:200; background:var(--maroon-dark);
+    display:flex; justify-content:center; gap:4px; padding:10px; flex-wrap:wrap;
+  }
+  .view-switcher button{
+    background:transparent; border:1px solid rgba(255,255,255,.25); color:var(--cream-alt);
+    padding:8px 18px; border-radius:30px; font-family:'Jost'; font-size:13px; cursor:pointer;
+    transition:.2s;
+  }
+  .view-switcher button.active{ background:var(--saffron); color:var(--maroon-dark); border-color:var(--saffron); font-weight:600; }
+  .view-panel{ display:none; }
+  .view-panel.active{ display:block; }
+
+  /* ============ NAVBAR ============ */
+  .navbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 5%; background:var(--cream); position:sticky; top:41px; z-index:150;
+    border-bottom:1px solid rgba(139,30,30,.12);
+  }
+  .logo{ font-size:26px; color:var(--maroon); }
+  .logo span{ color:var(--saffron); }
+  .nav-links{ display:flex; gap:34px; font-size:14.5px; letter-spacing:.03em; }
+  .nav-links a{ position:relative; padding-bottom:4px; }
+  .nav-links a::after{ content:''; position:absolute; left:0; bottom:0; width:0; height:1.5px; background:var(--saffron); transition:.25s; }
+  .nav-links a:hover::after{ width:100%; }
+  .nav-links.mobile-open{
+    display:flex; flex-direction:column; gap:0; position:absolute; top:100%; left:0; right:0;
+    background:var(--cream); box-shadow:0 12px 24px rgba(43,33,24,.12); padding:6px 0;
+  }
+  .nav-links.mobile-open li{ border-bottom:1px solid rgba(139,30,30,.08); }
+  .nav-links.mobile-open a{ display:block; padding:14px 6%; }
+  .nav-right{ display:flex; align-items:center; gap:18px; }
+  .btn{
+    display:inline-block; padding:12px 26px; border-radius:2px; font-size:13.5px;
+    letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:1px solid transparent;
+    transition:.25s; background:transparent; font-family:'Jost', sans-serif;
+  }
+  .btn-fill{ background:var(--saffron); color:var(--maroon-dark); font-weight:600; }
+  .btn-fill:hover{ background:#e07d1c; box-shadow:0 8px 20px rgba(242,140,40,.35); }
+  .btn-outline{ border-color:var(--cream); color:var(--cream); }
+  .btn-outline:hover{ background:rgba(255,244,224,.12); }
+  .btn-maroon-outline{ border-color:var(--maroon); color:var(--maroon); }
+  .btn-maroon-outline:hover{ background:var(--maroon); color:var(--white); }
+  .btn-small{ padding:9px 18px; font-size:12px; }
+  .menu-toggle{ display:none; font-size:26px; background:none; border:none; color:var(--maroon); cursor:pointer; }
+
+  /* ============ HERO ============ */
+  .hero{
+    position:relative; min-height:88vh; display:flex; align-items:center; justify-content:center;
+    text-align:center; overflow:hidden;
+  }
+  .hero-bg{
+    position:absolute; inset:0; background-size:cover; background-position:center;
+    background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1800&auto=format&fit=crop');
+  }
+  .hero-bg::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(43,33,24,.55) 0%, rgba(92,16,16,.72) 60%, rgba(43,33,24,.85) 100%);
+  }
+  .hero-content{ position:relative; z-index:2; color:var(--cream); max-width:760px; padding:0 24px; }
+  .hero-eyebrow{ letter-spacing:.35em; font-size:12px; text-transform:uppercase; color:var(--saffron-light); margin-bottom:20px; }
+  .hero h1{ font-size:clamp(46px,8vw,84px); line-height:1.02; margin-bottom:18px; }
+  .hero p.tagline{ font-size:18px; color:var(--cream-alt); max-width:520px; margin:0 auto 38px; font-weight:300; }
+  .hero-buttons{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; }
+
+  /* ============ QUICK INFO BAR ============ */
+  .info-bar{
+    position:relative; z-index:3; max-width:1080px; margin:-64px auto 0; background:var(--white);
+    display:grid; grid-template-columns:repeat(4,1fr); box-shadow:0 20px 50px rgba(43,33,24,.18);
+    border-radius:4px; overflow:hidden;
+  }
+  .info-item{
+    padding:30px 22px; text-align:center; border-right:1px solid rgba(201,161,90,.28);
+  }
+  .info-item:last-child{ border-right:none; }
+  .info-item .icon{ font-size:22px; margin-bottom:10px; color:var(--saffron); }
+  .info-item h4{ font-family:'Jost'; font-size:12px; text-transform:uppercase; letter-spacing:.14em; color:var(--maroon); margin-bottom:8px; font-weight:600; }
+  .info-item p{ font-size:14px; color:var(--ink); }
+  .info-item a.link-btn{ font-size:13px; color:var(--maroon); text-decoration:underline; text-underline-offset:3px; }
+
+  section{ padding:110px 6% ; }
+  .section-inner{ max-width:1180px; margin:0 auto; }
+  .center-head{ text-align:center; max-width:640px; margin:0 auto 60px; }
+  .center-head h2{ font-size:clamp(32px,4vw,48px); margin-top:8px; }
+
+  /* ============ ABOUT ============ */
+  .about-grid{ display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center; }
+  .about-grid img{ border-radius:4px; box-shadow:0 24px 50px rgba(43,33,24,.2); }
+  .about-text h2{ font-size:38px; margin-bottom:22px; }
+  .about-text p{ color:#4a3c2c; margin-bottom:16px; }
+  .about-stats{ display:flex; gap:40px; margin-top:32px; }
+  .about-stats div h3{ color:var(--maroon); font-size:30px; }
+  .about-stats div span{ font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:#7a6a55; }
+
+  /* ============ MENU PREVIEW ============ */
+  .menu-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:34px; }
+  .menu-card{ background:var(--white); border-radius:4px; overflow:hidden; box-shadow:0 12px 30px rgba(43,33,24,.1); transition:.3s; }
+  .menu-card:hover{ transform:translateY(-6px); box-shadow:0 24px 40px rgba(139,30,30,.18); }
+  .menu-card .img{ height:220px; background-size:cover; background-position:center; position:relative; }
+  .menu-card .tag{ position:absolute; top:14px; left:14px; background:var(--saffron); color:var(--maroon-dark); font-size:11px; padding:5px 12px; border-radius:20px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+  .veg-dot{ display:inline-block; width:13px; height:13px; border:2px solid; border-radius:2px; position:relative; vertical-align:middle; margin-right:6px; }
+  .veg-dot::after{ content:''; position:absolute; inset:2px; border-radius:50%; }
+  .veg-dot.veg{ border-color:#2e7d32; } .veg-dot.veg::after{ background:#2e7d32; }
+  .veg-dot.nonveg{ border-color:#C9412D; } .veg-dot.nonveg::after{ background:#C9412D; }
+  .menu-card .body{ padding:22px 22px 26px; }
+  .menu-card h3{ font-size:20px; margin-bottom:6px; color:var(--maroon); }
+  .menu-card p{ font-size:13.5px; color:#5c4d3c; margin-bottom:14px; }
+  .menu-card .price-row{ display:flex; justify-content:space-between; align-items:center; font-size:14px; }
+  .menu-card .price{ color:var(--saffron); font-weight:600; font-family:'Marcellus'; font-size:17px; }
+  .menu-cta{ text-align:center; margin-top:50px; }
+
+  /* ============ CONTACT / MAP ============ */
+  .contact-wrap{ display:grid; grid-template-columns:1fr 1fr; gap:0; background:var(--maroon); border-radius:6px; overflow:hidden; }
+  .contact-info{ padding:60px; color:var(--cream); }
+  .contact-info h2{ font-size:34px; margin-bottom:20px; }
+  .contact-info p{ color:var(--cream-alt); margin-bottom:26px; font-weight:300; }
+  .contact-row{ display:flex; gap:14px; margin-bottom:18px; font-size:14.5px; }
+  .contact-row .k{ color:var(--saffron-light); min-width:110px; text-transform:uppercase; font-size:11px; letter-spacing:.08em; padding-top:3px; }
+  .map-embed{ min-height:100%; background:#3a2a1f; position:relative; }
+  .map-embed iframe{ width:100%; height:100%; min-height:420px; border:0; filter:sepia(.15) saturate(1.1); }
+
+  /* ============ FOOTER ============ */
+  footer{ background:var(--maroon-dark); color:var(--cream-alt); padding:70px 6% 30px; }
+  .footer-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:50px; max-width:1180px; margin:0 auto 50px; }
+  .footer-grid h4{ color:var(--saffron); font-size:13px; text-transform:uppercase; letter-spacing:.12em; margin-bottom:18px; }
+  .footer-grid p, .footer-grid li{ font-size:13.5px; color:#d8c6ae; margin-bottom:10px; }
+  .footer-logo{ font-family:'Marcellus'; font-size:24px; color:var(--cream); margin-bottom:14px; }
+  .socials{ display:flex; gap:12px; margin-top:10px; }
+  .socials a{ width:36px; height:36px; border:1px solid rgba(255,244,224,.3); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; transition:.2s; }
+  .socials a:hover{ background:var(--saffron); color:var(--maroon-dark); border-color:var(--saffron); }
+  .footer-bottom{ text-align:center; border-top:1px solid rgba(255,244,224,.15); padding-top:24px; font-size:12.5px; color:#c5b299; max-width:1180px; margin:0 auto; }
+
+  /* ============ ORDER FORM (customer) ============ */
+  .order-wrap{ max-width:640px; margin:70px auto; background:var(--white); padding:50px; border-radius:6px; box-shadow:0 20px 50px rgba(43,33,24,.15); }
+  .order-wrap h2{ text-align:center; margin-bottom:6px; font-size:32px; color:var(--maroon); }
+  .order-wrap .sub{ text-align:center; color:#7a6a55; font-size:13.5px; margin-bottom:34px; }
+  .field{ margin-bottom:22px; }
+  .field label{ display:block; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--maroon); margin-bottom:8px; font-weight:600; }
+  .field input, .field select{
+    width:100%; padding:13px 14px; border:1px solid #e3d3b8; border-radius:3px; font-family:'Jost'; font-size:14.5px; background:var(--cream);
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--saffron); }
+  .order-type-row{ display:flex; gap:12px; }
+  .order-type{ flex:1; text-align:center; padding:14px 8px; border:1px solid #e3d3b8; border-radius:3px; cursor:pointer; font-size:13px; transition:.2s; }
+  .order-type.selected{ background:var(--maroon); color:var(--white); border-color:var(--maroon); }
+  .table-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+  .table-num{ padding:10px 0; text-align:center; border:1px solid #e3d3b8; border-radius:3px; cursor:pointer; font-size:13px; }
+  .table-num.selected{ background:var(--saffron); border-color:var(--saffron); color:var(--maroon-dark); font-weight:600; }
+  .table-section{ display:none; }
+  .table-section.show{ display:block; }
+  .order-submit{ width:100%; margin-top:10px; text-align:center; }
+
+  .pick-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 4px; border-bottom:1px solid #f0e6d2; }
+  .pick-row:last-child{ border-bottom:none; }
+  .pick-info{ font-size:13.5px; flex:1; min-width:0; }
+  .pick-info .name{ color:var(--ink); font-weight:500; }
+  .pick-info .price{ color:var(--maroon); font-size:12.5px; }
+  .stepper{ display:flex; align-items:center; gap:0; border:1px solid #e3d3b8; border-radius:20px; overflow:hidden; flex-shrink:0; }
+  .stepper button{
+    width:34px; height:34px; border:none; background:var(--cream-alt); color:var(--maroon);
+    font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .stepper button:active{ background:var(--saffron); color:var(--maroon-dark); }
+  .stepper .qty-display{ width:30px; text-align:center; font-size:14px; font-weight:600; color:var(--ink); }
+  .cart-summary{ background:var(--cream-alt); border-radius:6px; padding:16px 18px; margin-bottom:18px; }
+  .cart-summary-title{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--maroon); font-weight:600; margin-bottom:10px; }
+  .cart-line{ display:flex; justify-content:space-between; align-items:center; font-size:13.5px; padding:6px 0; border-bottom:1px solid rgba(139,30,30,.1); }
+  .cart-line:last-child{ border-bottom:none; }
+  .cart-line .remove-line{ background:none; border:none; color:#C9412D; font-size:16px; cursor:pointer; padding:0 4px; }
+  .cart-empty{ font-size:13px; color:#9a8a72; text-align:center; padding:6px 0; }
+  .cart-fab{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:998;
+    background:var(--maroon); color:var(--white); padding:14px 26px; border-radius:30px;
+    box-shadow:0 10px 28px rgba(0,0,0,.28); font-size:14px; font-weight:600; display:none;
+    align-items:center; gap:10px; cursor:pointer; border:none;
+  }
+  .cart-fab.show{ display:flex; }
+  .cat-tabs{ display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:6px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .cat-tabs::-webkit-scrollbar{ display:none; }
+  .cat-tab{
+    flex-shrink:0; background:var(--white); border:1px solid #e3d3b8; color:#5c4d3c;
+    padding:8px 16px; border-radius:20px; font-size:12.5px; cursor:pointer; white-space:nowrap;
+    font-family:'Jost'; -webkit-tap-highlight-color:transparent;
+  }
+  .cat-tab.active{ background:var(--maroon); border-color:var(--maroon); color:var(--white); font-weight:600; }
+
+  /* ============ ORDER CONFIRMATION / STATUS TRACKER ============ */
+  .status-step{ flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:11.5px; color:#9a8a72; position:relative; }
+  .status-step::before{
+    content:''; position:absolute; top:9px; left:-50%; width:100%; height:2px; background:#e3d3b8; z-index:0;
+  }
+  .status-step:first-child::before{ display:none; }
+  .status-dot{ width:20px; height:20px; border-radius:50%; background:#e3d3b8; z-index:1; transition:.3s; }
+  .status-step.done .status-dot{ background:var(--green); }
+  .status-step.done::before{ background:var(--green); }
+  .status-step.current .status-dot{ background:var(--saffron); box-shadow:0 0 0 4px rgba(242,140,40,.25); }
+  .status-step.done, .status-step.current{ color:var(--ink); font-weight:600; }
+  .conf-item-line{ display:flex; justify-content:space-between; font-size:13px; padding:4px 0; color:#5c4d3c; }
+
+  /* ============ KITCHEN DISPLAY SYSTEM ============ */
+  .kds-card{ background:var(--white); border-radius:6px; padding:20px; box-shadow:0 8px 22px rgba(43,33,24,.1); border-top:4px solid var(--saffron); }
+  .kds-card.preparing{ border-top-color:#B4680B; }
+  .kds-card.ready{ border-top-color:#1D6FA5; }
+  .kds-card.pending{ border-top-color:#C9412D; }
+  .kds-card .kds-id{ font-family:'Marcellus'; color:var(--maroon); font-size:16px; margin-bottom:2px; }
+  .kds-card .kds-meta{ font-size:11.5px; color:#9a8a72; margin-bottom:12px; }
+  .kds-card .kds-items{ font-size:13px; color:var(--ink); margin-bottom:14px; line-height:1.6; }
+  .kds-card .kds-btn{ width:100%; padding:12px; border:none; border-radius:4px; font-size:13px; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:.04em; }
+  .kds-btn.to-preparing{ background:#B4680B; color:#fff; }
+  .kds-btn.to-complete{ background:var(--green); color:#fff; }
+  @keyframes kdsPulse{ 0%,100%{ transform:translateX(-50%) scale(1); } 50%{ transform:translateX(-50%) scale(1.06); } }
+
+  /* ============ DASHBOARD ============ */
+  .dash-wrap{ max-width:1180px; margin:0 auto; padding:50px 6%; }
+  .dash-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:34px; flex-wrap:wrap; gap:14px; }
+  .dash-head h2{ font-size:30px; color:var(--maroon); }
+  .stat-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:16px; margin-bottom:44px; }
+  .stat-card{ background:var(--white); border-radius:6px; padding:22px 16px; text-align:center; box-shadow:0 8px 22px rgba(43,33,24,.08); border-top:3px solid var(--saffron); }
+  .stat-card.pending{ border-top-color:#C9412D; }
+  .stat-card.complete{ border-top-color:var(--green); }
+  .stat-card h3{ font-size:30px; color:var(--maroon); }
+  .stat-card span{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:#7a6a55; }
+  .order-table{ width:100%; border-collapse:collapse; background:var(--white); border-radius:6px; overflow:hidden; box-shadow:0 8px 22px rgba(43,33,24,.08); }
+  .order-table th, .order-table td{ padding:15px 18px; text-align:left; font-size:13.5px; border-bottom:1px solid #f0e6d2; }
+  .order-table th{ background:var(--maroon); color:var(--cream); text-transform:uppercase; font-size:11px; letter-spacing:.06em; }
+  .status-pill{ padding:5px 12px; border-radius:20px; font-size:11.5px; font-weight:600; text-transform:uppercase; }
+  .status-pill.pending{ background:#FCE3DC; color:#C9412D; }
+  .status-pill.accepted{ background:#FDECC8; color:#B4680B; }
+  .status-pill.preparing{ background:#FFE9C7; color:#B4680B; }
+  .status-pill.ready{ background:#DCEEFB; color:#1D6FA5; }
+  .status-pill.complete{ background:#DEEEDF; color:var(--green); }
+  .status-pill.cancelled{ background:#eee; color:#888; text-decoration:line-through; }
+
+  /* ============ REVENUE ============ */
+  .rev-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:44px; }
+  .rev-card{ background:var(--maroon); color:var(--cream); padding:30px 26px; border-radius:6px; }
+  .rev-card.alt{ background:var(--white); color:var(--ink); border:1px solid #e3d3b8; }
+  .rev-card span{ font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; opacity:.75; }
+  .rev-card h3{ font-size:32px; margin-top:8px; font-family:'Marcellus'; }
+
+  /* ============ BUSINESS REPORT ============ */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:36px; }
+  .kpi-card{ background:var(--white); border-radius:6px; padding:24px 16px; text-align:center; box-shadow:0 8px 22px rgba(43,33,24,.08); border-top:3px solid var(--saffron); }
+  .kpi-card h3{ font-size:28px; color:var(--maroon); font-family:'Marcellus'; }
+  .kpi-card span{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#7a6a55; }
+  .chart-row{ display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:50px; }
+  .chart-card{ background:var(--white); border-radius:6px; padding:26px; box-shadow:0 8px 22px rgba(43,33,24,.08); }
+  .chart-card h4{ font-family:'Marcellus'; color:var(--maroon); margin-bottom:20px; font-size:16px; font-weight:400; }
+  .bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:16px; font-size:13px; }
+  .bar-label{ width:100px; color:#5c4d3c; flex-shrink:0; }
+  .bar-track{ flex:1; background:var(--cream-alt); border-radius:20px; height:14px; overflow:hidden; }
+  .bar-fill{ height:100%; background:linear-gradient(90deg, var(--saffron), var(--maroon)); border-radius:20px; transition:width .4s; }
+  .bar-value{ width:44px; text-align:right; color:var(--maroon); font-weight:600; flex-shrink:0; }
+  .trend-chart{ display:flex; align-items:flex-end; gap:10px; height:150px; }
+  .trend-bar-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%; }
+  .trend-bar{ width:100%; background:linear-gradient(180deg, var(--saffron), var(--maroon)); border-radius:4px 4px 0 0; min-height:3px; }
+  .trend-label{ font-size:10.5px; color:#7a6a55; }
+  .trend-amt{ font-size:10px; color:var(--maroon); font-weight:600; }
+  @media(max-width:900px){
+    .kpi-grid{ grid-template-columns:1fr 1fr; }
+    .chart-row{ grid-template-columns:1fr; }
+  }
+
+  @media(max-width:900px){
+    .nav-links{ display:none; }
+    .menu-toggle{ display:block; }
+    .info-bar{ grid-template-columns:repeat(2,1fr); margin-top:20px; }
+    .info-item:nth-child(2){ border-right:none; }
+    .about-grid, .menu-grid, .contact-wrap, .stat-grid, .rev-grid, .footer-grid{ grid-template-columns:1fr 1fr; }
+    .stat-grid{ grid-template-columns:repeat(3,1fr); }
+    .footer-grid{ grid-template-columns:1fr 1fr; }
+    section{ padding:70px 6%; }
+  }
+  @media(max-width:560px){
+    .menu-grid, .rev-grid, .about-grid, .contact-wrap, .footer-grid{ grid-template-columns:1fr; }
+    .stat-grid, .kpi-grid{ grid-template-columns:1fr 1fr; }
+    .table-grid{ grid-template-columns:repeat(4,1fr); }
+    .contact-info{ padding:40px 30px; }
+    .order-wrap{ padding:28px 20px; margin:30px auto; border-radius:0; box-shadow:none; }
+    .order-type-row{ flex-wrap:wrap; }
+    .order-type{ flex:1 1 45%; }
+    .dash-head{ flex-direction:column; align-items:flex-start; }
+    .order-table{ font-size:12px; }
+    .order-table th, .order-table td{ padding:10px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="edit-badge">✎ Click any text to edit it directly</div>
+
+<!-- DEMO VIEW SWITCHER — remove this bar once split into real pages/routes -->
+<div class="view-switcher" id="viewSwitcher">
+  <button class="active" data-view="website">Website</button>
+  <button data-view="order">Place Order</button>
+  <button data-view="dashboard" id="btnDashboard" style="display:none;">Order Dashboard</button>
+  <button data-view="kitchen" id="btnKitchen" style="display:none;">Kitchen</button>
+  <button data-view="revenue" id="btnRevenue" style="display:none;">Revenue</button>
+  <button data-view="admin" id="btnAdmin" style="display:none;">Super Admin</button>
+  <button data-view="login" id="btnLogin">Staff Login</button>
+  <button id="btnLogout" onclick="doLogout()" style="display:none; background:transparent; border:1px solid rgba(255,255,255,.25); color:#FFD79A;">Logout</button>
+  <span id="authBadge" style="display:none; align-self:center; margin-left:6px; font-size:12px; color:#FFD79A; padding:8px 4px;"></span>
+</div>
+
+<!-- ================= WEBSITE VIEW ================= -->
+<div class="view-panel active" id="view-website">
+
+  <nav class="navbar">
+    <div class="logo" contenteditable="false" data-editable="1">ANGEETHI<span>.</span></div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="btn btn-maroon-outline btn-small" onclick="switchView('myorders')">My Orders</button>
+      <button class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('mobile-open')">☰</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="home" style="padding:0;">
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-content">
+        <p class="hero-eyebrow" contenteditable="false" data-editable="1">Fine Indian Dining Since 1998</p>
+        <h1 contenteditable="false" data-editable="1">Angeethi</h1>
+        <p class="tagline" contenteditable="false" data-editable="1">Where fire, spice and heritage meet on one plate — an ode to the tandoor, plated for the modern table.</p>
+        <div class="hero-buttons">
+          <a class="btn btn-fill" href="#menu">View Menu</a>
+          <button class="btn btn-outline" onclick="switchView('order')">Order Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK INFO BAR -->
+    <div class="info-bar">
+      <div class="info-item">
+        <div class="icon">⏱</div>
+        <h4>Opening Hours</h4>
+        <p contenteditable="false" data-editable="1">12:00 PM – 3:30 PM<br>7:00 PM – 11:30 PM</p>
+      </div>
+      <div class="info-item">
+        <div class="icon">📍</div>
+        <h4>Location</h4>
+        <p contenteditable="false" data-editable="1">12 Residency Road, Bengaluru</p>
+        <a class="link-btn" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=12.9716,77.5946">Get Directions →</a>
+      </div>
+      <div class="info-item">
+        <div class="icon">📞</div>
+        <h4>Reservations</h4>
+        <p><a href="tel:+919876543210" contenteditable="false" data-editable="1">+91 98765 43210</a></p>
+      </div>
+      <div class="info-item">
+        <div class="icon">🍽</div>
+        <h4>Closed On</h4>
+        <p contenteditable="false" data-editable="1">Open all week</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-inner about-grid">
+      <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?q=80&w=1000&auto=format&fit=crop" alt="Chef plating a signature dish">
+      <div class="about-text">
+        <p class="eyebrow" style="justify-content:flex-start;">Our Story</p>
+        <h2 contenteditable="false" data-editable="1">A hearth, not just a kitchen</h2>
+        <p contenteditable="false" data-editable="1">Angeethi began as a single charcoal hearth in a family courtyard — the word itself means the warm iron pot that keeps a home fed through winter. Three generations later, that same fire still anchors every dish that leaves our kitchen.</p>
+        <p contenteditable="false" data-editable="1">Every recipe is slow, deliberate, and built on spice blends ground fresh each morning. Nothing here is rushed — not the marinade, not the service, not the evening.</p>
+        <div class="about-stats">
+          <div><h3 contenteditable="false" data-editable="1">26</h3><span>Years of Craft</span></div>
+          <div><h3 contenteditable="false" data-editable="1">40+</h3><span>Signature Dishes</span></div>
+          <div><h3 contenteditable="false" data-editable="1">4.8★</h3><span>Guest Rating</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU PREVIEW -->
+  <section id="menu" style="background:var(--cream-alt);">
+    <div class="section-inner">
+      <div class="center-head">
+        <p class="eyebrow">The Table</p>
+        <h2 contenteditable="false" data-editable="1">Signature Dishes</h2>
+      </div>
+      <div class="menu-grid" id="publicMenuGrid">
+        <p style="grid-column:1/-1; text-align:center; color:#9a8a72; font-size:14px; padding:30px 0;">
+          Our menu is being prepared — check back soon, or ask a staff member for today's specials.
+        </p>
+      </div>
+      <div class="menu-cta"><a class="btn btn-maroon-outline" href="#contact">See Full Menu</a></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-inner">
+      <div class="contact-wrap">
+        <div class="contact-info">
+          <p class="eyebrow" style="justify-content:flex-start;">Visit Us</p>
+          <h2 contenteditable="false" data-editable="1">Reserve Your Table</h2>
+          <p contenteditable="false" data-editable="1">Walk-ins welcome, though the courtyard tables go quickly on weekends. Call ahead or order in for the same fire, delivered.</p>
+          <div class="contact-row"><span class="k">Address</span><span contenteditable="false" data-editable="1">12 Residency Road, Bengaluru, Karnataka 560025</span></div>
+          <div class="contact-row"><span class="k">Phone</span><span contenteditable="false" data-editable="1">+91 98765 43210</span></div>
+          <div class="contact-row"><span class="k">WhatsApp</span><span contenteditable="false" data-editable="1">+91 98765 43211</span></div>
+          <div class="contact-row"><span class="k">Email</span><span contenteditable="false" data-editable="1">reservations@angeethi.in</span></div>
+          <a class="btn btn-fill" style="margin-top:10px;" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=12.9716,77.5946">Get Directions →</a>
+        </div>
+        <div class="map-embed">
+          <iframe loading="lazy" src="https://www.google.com/maps?q=12.9716,77.5946&output=embed"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo" contenteditable="false" data-editable="1">Angeethi</div>
+        <p contenteditable="false" data-editable="1">Fine Indian dining rooted in fire, spice and three generations of craft.</p>
+        <div class="socials">
+          <a href="#" aria-label="Instagram">IG</a>
+          <a href="#" aria-label="Facebook">FB</a>
+          <a href="#" aria-label="YouTube">YT</a>
+          <a href="#" aria-label="Google">G</a>
+        </div>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul><li><a href="#home">Home</a></li><li><a href="#menu">Menu</a></li><li><a href="#about">About</a></li><li><a href="#contact">Contact</a></li></ul>
+      </div>
+      <div>
+        <h4>Hours</h4>
+        <p contenteditable="false" data-editable="1">Lunch 12:00 – 3:30 PM</p>
+        <p contenteditable="false" data-editable="1">Dinner 7:00 – 11:30 PM</p>
+        <p contenteditable="false" data-editable="1">Open all week</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p contenteditable="false" data-editable="1">+91 98765 43210</p>
+        <p contenteditable="false" data-editable="1">reservations@angeethi.in</p>
+        <p contenteditable="false" data-editable="1">12 Residency Road, Bengaluru</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 Angeethi Restaurant. All rights reserved. · Crafted with fire and patience.</div>
+  </footer>
+
+</div>
+
+<!-- ================= ORDER VIEW (customer) ================= -->
+<div class="view-panel" id="view-order">
+  <div class="order-wrap">
+    <h2>Start Your Order</h2>
+    <p class="sub">Tell us a little about you — takes 20 seconds.</p>
+
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="ordName" placeholder="e.g. Rohan Mehta">
+    </div>
+    <div class="field">
+      <label>Mobile Number</label>
+      <input type="tel" id="ordMobile" placeholder="e.g. 98765 43210">
+    </div>
+    <div class="field">
+      <label>Order Type</label>
+      <div class="order-type-row" id="orderTypeRow">
+        <div class="order-type selected" data-type="Dine-In" onclick="selectOrderType(this,true)">Dine-In</div>
+        <div class="order-type" data-type="Takeaway" onclick="selectOrderType(this,false)">Takeaway</div>
+        <div class="order-type" data-type="Home Delivery" onclick="selectOrderType(this,false)">Home Delivery</div>
+      </div>
+    </div>
+    <div class="field table-section show" id="tableSection">
+      <label>Choose Your Table</label>
+      <div class="table-grid" id="tableGrid"></div>
+    </div>
+    <div class="field">
+      <label>Select Items</label>
+      <input type="text" id="menuSearch" placeholder="Search dishes..." oninput="filterOrderSearch()" style="width:100%; padding:12px 14px; border:1px solid #e3d3b8; border-radius:3px; font-family:'Jost'; font-size:14px; background:var(--white); margin-bottom:10px;">
+      <div class="cat-tabs" style="margin-bottom:2px;">
+        <button type="button" class="cat-tab" id="filterVeg" onclick="toggleQuickFilter('veg', this)">🟢 Veg Only</button>
+        <button type="button" class="cat-tab" id="filterSpicy" onclick="toggleQuickFilter('spicy', this)">🌶 Spicy</button>
+        <button type="button" class="cat-tab" id="filterBestseller" onclick="toggleQuickFilter('bestseller', this)">⭐ Bestseller</button>
+        <select onchange="setPriceSort(this.value)" style="flex-shrink:0; border:1px solid #e3d3b8; border-radius:20px; padding:8px 14px; font-size:12.5px; font-family:'Jost'; background:var(--white); color:#5c4d3c;">
+          <option value="">Sort: Default</option>
+          <option value="asc">Price: Low to High</option>
+          <option value="desc">Price: High to Low</option>
+        </select>
+      </div>
+      <div class="cat-tabs" id="orderCatTabs"></div>
+      <div id="orderMenuPicker" style="border:1px solid #e3d3b8; border-radius:3px; padding:14px; max-height:320px; overflow-y:auto; background:var(--cream);">
+        <p style="font-size:13px; color:#9a8a72; text-align:center;">Menu items will appear here once the restaurant adds them.</p>
+      </div>
+    </div>
+    <div class="field">
+      <div class="cart-summary-title">Your Cart</div>
+      <div class="cart-summary" id="cartSummary">
+        <p class="cart-empty">No items added yet — tap + next to a dish above.</p>
+      </div>
+    </div>
+    <div class="field">
+      <label>Special Instructions (optional)</label>
+      <input type="text" id="ordNotes" placeholder="e.g. Less spicy, no onions">
+    </div>
+    <div class="field">
+      <label>Payment Mode</label>
+      <div class="order-type-row" id="paymentModeRow">
+        <div class="order-type selected" data-pm="UPI" onclick="selectPaymentMode(this)">UPI</div>
+        <div class="order-type" data-pm="Cash" onclick="selectPaymentMode(this)">Cash</div>
+        <div class="order-type" data-pm="Card" onclick="selectPaymentMode(this)">Card</div>
+      </div>
+      <p style="font-size:11.5px; color:#9a8a72; margin-top:8px;">Online UPI/Card gateway confirmation happens at the counter for now — pay staff directly when your order is served.</p>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 4px; border-top:1px dashed #e3d3b8; margin-bottom:20px;">
+      <span style="font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--maroon); font-weight:600;">Total</span>
+      <span id="orderTotalDisplay" style="font-family:'Marcellus'; font-size:22px; color:var(--maroon);">₹0</span>
+    </div>
+    <div id="ordMsg" style="display:none; margin-bottom:16px; font-size:13px; color:var(--maroon); text-align:center;"></div>
+    <div class="order-submit">
+      <button class="btn btn-fill" style="width:100%;" id="ordSubmitBtn" onclick="submitOrder()">Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ORDER CONFIRMATION (live status) ================= -->
+<div class="view-panel" id="view-confirmation">
+  <div class="order-wrap" style="text-align:center;">
+    <div style="font-size:46px; margin-bottom:6px;">✅</div>
+    <h2>Order Placed!</h2>
+    <p class="sub">Show this Order ID at the counter if needed.</p>
+    <div style="background:var(--cream-alt); border-radius:6px; padding:20px; margin-bottom:26px;">
+      <div style="font-family:'Marcellus'; font-size:22px; color:var(--maroon);" id="confOrderId">—</div>
+      <div style="font-size:12px; color:#7a6a55; margin-top:4px;" id="confOrderTime">—</div>
+    </div>
+
+    <div id="cancelledBanner" style="display:none; background:#FCE3DC; color:#C9412D; border-radius:6px; padding:16px; margin-bottom:26px; font-weight:600;">
+      ✕ This order was cancelled. Please speak to a staff member.
+    </div>
+
+    <div style="display:flex; justify-content:space-between; margin-bottom:30px;" id="statusTracker">
+      <div class="status-step" data-step="pending"><div class="status-dot"></div><span>Received</span></div>
+      <div class="status-step" data-step="accepted"><div class="status-dot"></div><span>Accepted</span></div>
+      <div class="status-step" data-step="preparing"><div class="status-dot"></div><span>Cooking</span></div>
+      <div class="status-step" data-step="ready"><div class="status-dot"></div><span>Ready</span></div>
+      <div class="status-step" data-step="served"><div class="status-dot"></div><span>Served</span></div>
+    </div>
+
+    <div id="serviceRequestBox" style="display:none; text-align:left; background:var(--cream-alt); border-radius:6px; padding:18px; margin-bottom:26px;">
+      <div style="font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--maroon); font-weight:600; margin-bottom:12px;">Need something?</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <button class="btn btn-maroon-outline btn-small" onclick="requestService('waiter')">🔔 Call Waiter</button>
+        <button class="btn btn-maroon-outline btn-small" onclick="requestService('water')">💧 Water</button>
+        <button class="btn btn-maroon-outline btn-small" onclick="requestService('plate')">🍽️ Extra Plate</button>
+        <button class="btn btn-maroon-outline btn-small" onclick="requestService('bill')">🧾 Bill Please</button>
+        <button class="btn btn-maroon-outline btn-small" style="grid-column:1/-1;" onclick="requestService('clear')">🧹 Clear Table</button>
+      </div>
+      <p id="serviceMsg" style="display:none; font-size:12px; color:var(--green); margin-top:10px; text-align:center;"></p>
+    </div>
+
+    <div style="text-align:left; background:var(--white); border:1px solid #e3d3b8; border-radius:6px; padding:20px; margin-bottom:26px;">
+      <div style="font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--maroon); font-weight:600; margin-bottom:12px;">Receipt</div>
+      <div id="confItemsList"></div>
+      <div style="display:flex; justify-content:space-between; padding-top:12px; margin-top:8px; border-top:1px dashed #e3d3b8; font-weight:600; color:var(--maroon);">
+        <span>Total</span><span id="confTotal">₹0</span>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px;">
+      <button class="btn btn-maroon-outline btn-small" onclick="printReceipt(window.lastConfirmedOrder)">🖨 Print / PDF</button>
+      <button class="btn btn-maroon-outline btn-small" onclick="shareReceiptWhatsapp(window.lastConfirmedOrder)">WhatsApp</button>
+      <button class="btn btn-maroon-outline btn-small" onclick="switchView('myorders')">My Orders</button>
+    </div>
+    <button class="btn btn-maroon-outline" style="width:100%;" onclick="switchView('website')">Back to Home</button>
+  </div>
+</div>
+
+<!-- ================= ORDER DASHBOARD (staff) ================= -->
+<div class="view-panel" id="view-dashboard">
+  <div class="dash-wrap">
+    <div class="dash-head">
+      <h2 id="dashTitle">Today's Orders</h2>
+      <div class="order-type-row" id="dashFilterRow" style="width:fit-content;">
+        <div class="order-type selected" data-filter="today" onclick="setDashFilter('today')">Today</div>
+        <div class="order-type" data-filter="all" onclick="setDashFilter('all')">All Orders</div>
+      </div>
+    </div>
+    <div class="stat-grid" id="dashStats">
+      <div class="stat-card"><h3 id="statTotal">0</h3><span>Total Orders</span></div>
+      <div class="stat-card"><h3 id="statDine">0</h3><span>Dine-In</span></div>
+      <div class="stat-card"><h3 id="statTakeaway">0</h3><span>Takeaway</span></div>
+      <div class="stat-card"><h3 id="statDelivery">0</h3><span>Parcel / Delivery</span></div>
+      <div class="stat-card complete"><h3 id="statComplete">0</h3><span>Completed</span></div>
+      <div class="stat-card pending"><h3 id="statPending">0</h3><span>Pending</span></div>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="order-table">
+      <thead><tr><th>Order ID</th><th>Date / Time</th><th>Guest</th><th>Type</th><th>Table</th><th>Amount</th><th>Status</th><th>Payment</th></tr></thead>
+      <tbody id="dashTableBody">
+        <tr><td colspan="8" style="text-align:center;color:#9a8a72;">No orders yet — place one from "Place Order".</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- ================= REVENUE ================= -->
+<div class="view-panel" id="view-revenue">
+  <div class="dash-wrap">
+    <div class="dash-head">
+      <h2>Revenue Overview</h2>
+      <span style="font-size:13px;color:#7a6a55;">Today · Sunday, 09 Aug 2026</span>
+    </div>
+    <div class="rev-grid">
+      <div class="rev-card"><span>Total Revenue</span><h3 id="revTotal">₹0</h3></div>
+      <div class="rev-card alt"><span>Payment Completed</span><h3 style="color:var(--green);" id="revComplete">₹0</h3></div>
+      <div class="rev-card alt"><span>Payment Pending</span><h3 style="color:#C9412D;" id="revPending">₹0</h3></div>
+    </div>
+    <table class="order-table">
+      <thead><tr><th>Order ID</th><th>Date / Time</th><th>Guest</th><th>Method</th><th>Amount</th><th>Payment Status</th></tr></thead>
+      <tbody id="revTableBody">
+        <tr><td colspan="5" style="text-align:center;color:#9a8a72;">No orders yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= MY ORDERS / TRACK ORDER ================= -->
+<div class="view-panel" id="view-myorders">
+  <div class="order-wrap" style="max-width:560px;">
+    <h2>My Orders</h2>
+    <p class="sub">Find your orders by mobile number, or track one directly by its Order ID.</p>
+    <div class="field">
+      <label>By Mobile Number</label>
+      <div style="display:flex; gap:10px;">
+        <input type="tel" id="moMobile" placeholder="e.g. 98765 43210" style="flex:1;">
+        <button class="btn btn-fill" onclick="findMyOrders()">Find</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Or Track by Order ID</label>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="trackOrderId" placeholder="e.g. ANG-20260813-143205-482" style="flex:1;">
+        <button class="btn btn-maroon-outline" onclick="trackOrderById()">Track</button>
+      </div>
+    </div>
+    <div id="moMsg" style="display:none; margin-bottom:14px; font-size:13px; text-align:center;"></div>
+    <div id="moResults"></div>
+  </div>
+</div>
+
+<!-- ================= KITCHEN DISPLAY SYSTEM ================= -->
+<div class="view-panel" id="view-kitchen">
+  <div class="dash-wrap">
+    <div class="dash-head">
+      <h2>Kitchen Display</h2>
+      <button class="btn btn-maroon-outline btn-small" onclick="toggleKitchenSound()" id="kdsSoundBtn">🔔 Sound: On</button>
+    </div>
+
+    <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:12px; font-size:17px;">Table Requests <span id="serviceReqBadge" style="background:#C9412D; color:#fff; font-size:11px; padding:2px 8px; border-radius:10px; margin-left:6px;"></span></h3>
+    <div id="serviceReqList" style="margin-bottom:34px;">
+      <p style="color:#9a8a72; font-size:13px;">No pending requests.</p>
+    </div>
+
+    <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:12px; font-size:17px;">Active Orders</h3>
+    <div id="kdsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:18px;">
+      <p style="grid-column:1/-1; text-align:center; color:#9a8a72;">No active orders right now.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SUPER ADMIN: MANAGE OWNERS ================= -->
+<div class="view-panel" id="view-admin">
+  <div class="dash-wrap">
+    <div class="dash-head"><h2>Super Admin Dashboard</h2></div>
+
+    <!-- REVENUE OVERVIEW -->
+    <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:16px; font-size:20px;">Revenue Overview</h3>
+    <div class="rev-grid" style="margin-bottom:50px;">
+      <div class="rev-card"><span>Today's Revenue</span><h3 id="admRevToday">₹0</h3></div>
+      <div class="rev-card alt"><span>Payment Completed</span><h3 style="color:var(--green);" id="admRevComplete">₹0</h3></div>
+      <div class="rev-card alt"><span>Payment Pending</span><h3 style="color:#C9412D;" id="admRevPending">₹0</h3></div>
+    </div>
+
+    <!-- BUSINESS REPORT -->
+    <!-- RESTAURANT SETTINGS -->
+    <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:16px; font-size:20px;">Restaurant Settings</h3>
+    <div style="background:var(--cream-alt); border-radius:6px; padding:16px 22px; margin-bottom:18px; max-width:420px; font-size:13px;">
+      This deployment's Restaurant ID: <strong id="thisRestaurantId" style="font-family:'Marcellus'; letter-spacing:.05em;">—</strong><br>
+      <span style="color:#7a6a55;">All your orders, menu, and staff are isolated to this ID — other restaurants using this same app never see your data.</span>
+    </div>
+    <div style="background:var(--white); border-radius:6px; padding:26px; margin-bottom:44px; box-shadow:0 8px 22px rgba(43,33,24,.08); max-width:420px;">
+      <div class="field">
+        <label>Number of Tables (for Dine-In)</label>
+        <input type="number" id="settingTableCount" min="1" placeholder="e.g. 24">
+      </div>
+      <div class="field"><label>Restaurant Name (for receipts)</label><input type="text" id="settingRestName" placeholder="Angeethi"></div>
+      <div class="field"><label>Address (for receipts)</label><input type="text" id="settingAddress" placeholder="12 Residency Road, Bengaluru"></div>
+      <div class="field"><label>Logo URL (for receipts, optional)</label><input type="text" id="settingLogoUrl" placeholder="https://..."></div>
+      <div class="field">
+        <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="settingGstEnabled" style="width:auto;"> Show GST on receipts</label>
+      </div>
+      <div class="field"><label>GST Percentage (%)</label><input type="number" id="settingGstPercent" min="0" max="28" step="0.1" placeholder="e.g. 5"></div>
+      <div class="field"><label>GSTIN</label><input type="text" id="settingGstin" placeholder="e.g. 29ABCDE1234F1Z5"></div>
+      <div id="settingsMsg" style="display:none; margin-bottom:14px; font-size:13px;"></div>
+      <button class="btn btn-fill" onclick="saveSettings()">Save Settings</button>
+    </div>
+
+    <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:16px; font-size:20px;">Business Report</h3>
+    <div class="kpi-grid">
+      <div class="kpi-card"><h3 id="kpiTotalOrders">0</h3><span>Total Orders</span></div>
+      <div class="kpi-card"><h3 id="kpiTotalRevenue">₹0</h3><span>Total Revenue</span></div>
+      <div class="kpi-card"><h3 id="kpiAvgOrder">₹0</h3><span>Avg Order Value</span></div>
+      <div class="kpi-card"><h3 id="kpiCompletion">0%</h3><span>Completion Rate</span></div>
+      <div class="kpi-card" style="border-top-color:var(--maroon);"><h3 id="kpiGstCollected">₹0</h3><span>GST Collected</span></div>
+      <div class="kpi-card" style="border-top-color:#C9412D;"><h3 id="kpiCancelled">0</h3><span>Cancelled Orders</span></div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <h4>Orders by Type (Dine-in vs Takeaway vs Parcel)</h4>
+        <div id="chartOrdersByType"></div>
+      </div>
+      <div class="chart-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h4 style="margin-bottom:0;">Sales Trend</h4>
+          <div class="order-type-row" id="trendPeriodRow" style="width:fit-content;">
+            <div class="order-type selected btn-small" data-period="daily" onclick="setTrendPeriod('daily')">Daily</div>
+            <div class="order-type btn-small" data-period="weekly" onclick="setTrendPeriod('weekly')">Weekly</div>
+            <div class="order-type btn-small" data-period="monthly" onclick="setTrendPeriod('monthly')">Monthly</div>
+          </div>
+        </div>
+        <div class="trend-chart" id="chartRevenueTrend"></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <h4>Top Selling Items</h4>
+        <div id="chartTopItems"></div>
+      </div>
+      <div class="chart-card">
+        <h4>Least Selling Items</h4>
+        <div id="chartLeastItems"></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <h4>Payment Method Report</h4>
+        <div id="chartPaymentMethod"></div>
+      </div>
+      <div class="chart-card">
+        <h4>GST Report</h4>
+        <div id="chartGstReport"></div>
+      </div>
+    </div>
+
+    <div class="chart-row" style="grid-template-columns:1fr;">
+      <div class="chart-card">
+        <h4>Staff Performance <span style="font-size:11px; font-weight:400; color:#9a8a72;">(based on who last updated each order's status)</span></h4>
+        <div id="chartStaffPerf"></div>
+      </div>
+    </div>
+
+    <!-- STAFF & OWNER ACCOUNTS -->
+    <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:16px; font-size:20px;">Staff & Owner Accounts</h3>
+
+    <!-- Easy way: invite code -->
+    <div style="background:var(--white); border-radius:6px; padding:26px; margin-bottom:24px; box-shadow:0 8px 22px rgba(43,33,24,.08);">
+      <p style="font-size:13px; color:#7a6a55; margin-bottom:18px; line-height:1.7;">
+        <strong>Easiest way to add staff</strong> — generate a one-time invite code below, and share it with them.
+        They sign up themselves from "Staff Login → New staff? Sign up with an invite code" — no need to touch Firebase Console or copy any UID.
+      </p>
+      <div class="field">
+        <label>Role for this invite</label>
+        <select id="invRole">
+          <option value="owner">Owner</option>
+          <option value="manager">Manager</option>
+          <option value="staff" selected>Staff</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Permissions this invite grants</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermEdit"> Edit website content</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermDash" checked> View Order Dashboard / Kitchen</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermStatus" checked> Update order status</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermRev"> View Revenue panel</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermPay"> Update payment status</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermMenu"> Edit menu</label>
+        </div>
+      </div>
+      <div id="inviteMsg" style="display:none; margin:14px 0; font-size:13px;"></div>
+      <button class="btn btn-fill" onclick="createInvite()">Generate Invite Code</button>
+
+      <table class="order-table" style="margin-top:24px;">
+        <thead><tr><th>Code</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="invitesTableBody">
+          <tr><td colspan="4" style="text-align:center;color:#9a8a72;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Manual fallback: paste an existing Firebase Auth UID -->
+    <div style="background:var(--white); border-radius:6px; padding:26px; margin-bottom:24px; box-shadow:0 8px 22px rgba(43,33,24,.08);">
+      <p style="font-size:13px; color:#7a6a55; margin-bottom:18px; line-height:1.7;">
+        <strong>Advanced / manual way</strong> — if you already created their login in Firebase Console → Authentication, paste their UID here instead.
+      </p>
+      <div class="field"><label>User ID (UID from Firebase Authentication)</label><input type="text" id="admUid" placeholder="e.g. 4ZQvTGcm7SRnYPA1SVl0QzVN7ST2"></div>
+      <div class="field"><label>Name</label><input type="text" id="admName" placeholder="e.g. Rohan Mehta"></div>
+      <div class="field"><label>Email</label><input type="email" id="admEmail" placeholder="owner@angeethi.in"></div>
+      <div class="field">
+        <label>Role</label>
+        <select id="admRole">
+          <option value="owner">Owner</option>
+          <option value="manager">Manager</option>
+          <option value="staff">Staff</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Permissions</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permEdit"> Edit website content (every section)</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permDash" checked> View Order Dashboard</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permStatus" checked> Update order status</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permRev"> View Revenue panel</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permPay"> Update payment status</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permMenu"> Edit menu (add/edit dishes)</label>
+        </div>
+      </div>
+      <div id="admMsg" style="display:none; margin:14px 0; font-size:13px;"></div>
+      <button class="btn btn-fill" onclick="saveOwner()">Save Account</button>
+      <button class="btn btn-maroon-outline" onclick="clearOwnerForm()" style="margin-left:10px;">Clear Form</button>
+    </div>
+
+    <table class="order-table" style="margin-bottom:50px;">
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Edit</th><th>Dashboard</th><th>Status</th><th>Revenue</th><th>Payments</th><th>Menu</th></tr></thead>
+      <tbody id="usersTableBody">
+        <tr><td colspan="9" style="text-align:center;color:#9a8a72;">Loading...</td></tr>
+      </tbody>
+    </table>
+
+    <!-- MENU MANAGEMENT -->
+    <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:16px; font-size:20px;">Menu Management</h3>
+    <div style="background:var(--white); border-radius:6px; padding:26px; margin-bottom:24px; box-shadow:0 8px 22px rgba(43,33,24,.08);">
+      <input type="hidden" id="menuItemId">
+      <div class="field"><label>Item Name</label><input type="text" id="menuName" placeholder="e.g. Tandoori Raan"></div>
+      <div class="field"><label>Short Description</label><input type="text" id="menuShortDesc" placeholder="One line shown on the menu card"></div>
+      <div class="field"><label>Full Description</label><input type="text" id="menuFullDesc" placeholder="Longer description (optional)"></div>
+      <div class="field">
+        <label>Category</label>
+        <select id="menuCategory">
+          <option>Starters</option><option>Main Course</option><option>Breads</option>
+          <option>Rice and Biryani</option><option>Chinese</option><option>Desserts</option>
+          <option>Beverages</option><option>Custom Category</option>
+        </select>
+      </div>
+      <div class="field"><label>Image URL</label><input type="text" id="menuImage" placeholder="https://..."></div>
+
+      <div class="field">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; font-size:14px;">
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="menuVeg"> Vegetarian</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="menuBestseller"> Bestseller</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="menuSpicy"> Spicy</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="menuAvailable" checked> Available</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Pricing Type</label>
+        <div class="order-type-row" id="pricingTypeRow">
+          <div class="order-type" data-pt="halfFull" onclick="setPricingType('halfFull')">Half & Full Price</div>
+          <div class="order-type" data-pt="multiple" onclick="setPricingType('multiple')">Multiple Sizes</div>
+        </div>
+      </div>
+
+      <div id="pricingSingle" class="field">
+        <label>Price (₹)</label>
+        <input type="number" id="menuPriceSingle" placeholder="e.g. 480">
+      </div>
+
+      <div id="pricingHalfFull" class="field" style="display:none;">
+        <label>Half & Full Price</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <input type="text" id="menuHalfName" placeholder="Half portion name (e.g. Half)">
+          <input type="number" id="menuHalfPrice" placeholder="Half price ₹">
+          <input type="text" id="menuFullName" placeholder="Full portion name (e.g. Full)">
+          <input type="number" id="menuFullPrice" placeholder="Full price ₹">
+        </div>
+      </div>
+
+      <div id="pricingMultiple" class="field" style="display:none;">
+        <label>Multiple Sizes (format: Name:Price, one per line)</label>
+        <textarea id="menuSizes" rows="3" placeholder="Small:220&#10;Medium:340&#10;Large:460" style="width:100%; padding:13px 14px; border:1px solid #e3d3b8; border-radius:3px; font-family:'Jost'; font-size:14.5px; background:var(--cream);"></textarea>
+      </div>
+
+      <div id="menuMsg" style="display:none; margin:14px 0; font-size:13px;"></div>
+      <button class="btn btn-fill" onclick="saveMenuItem()">Save Menu Item</button>
+      <button class="btn btn-maroon-outline" onclick="clearMenuForm()" style="margin-left:10px;">Clear Form</button>
+    </div>
+
+    <table class="order-table">
+      <thead><tr><th>Item</th><th>Category</th><th>Type</th><th>Price</th><th>Bestseller</th><th>Available</th><th>Action</th></tr></thead>
+      <tbody id="menuTableBody">
+        <tr><td colspan="7" style="text-align:center;color:#9a8a72;">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= STAFF LOGIN ================= -->
+<div class="view-panel" id="view-login">
+  <div class="order-wrap" style="max-width:440px;">
+    <h2>Staff Login</h2>
+    <p class="sub">Owner, Manager and Staff sign in here. Guests don't need an account.</p>
+
+    <div id="loginForm">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@angeethi.in">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <div id="loginMsg" style="display:none; margin-bottom:16px; font-size:13px; text-align:center;"></div>
+      <div class="order-submit">
+        <button class="btn btn-fill" style="width:100%;" id="loginBtn" onclick="doLogin()">Sign In</button>
+      </div>
+      <p style="text-align:center; font-size:12.5px; margin-top:20px; color:#7a6a55;">
+        New staff? <a href="#" onclick="switchView('signup'); return false;" style="color:var(--maroon); text-decoration:underline;">Sign up with an invite code</a>
+      </p>
+      <p style="text-align:center; font-size:12.5px; margin-top:8px; color:#7a6a55;">
+        New restaurant? <a href="#" onclick="switchView('newrestaurant'); return false;" style="color:var(--maroon); text-decoration:underline;">Set up your own restaurant here</a>
+      </p>
+    </div>
+
+    <div id="loggedInBox" style="display:none; text-align:center;">
+      <p style="margin-bottom:6px;">Signed in as</p>
+      <p style="font-weight:600; color:var(--maroon); margin-bottom:4px;" id="loggedInEmail"></p>
+      <p style="font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--saffron); margin-bottom:26px;" id="loggedInRole"></p>
+      <button class="btn btn-maroon-outline" style="width:100%;" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= STAFF SIGNUP (via invite code) ================= -->
+<div class="view-panel" id="view-signup">
+  <div class="order-wrap" style="max-width:440px;">
+    <h2>Staff Sign Up</h2>
+    <p class="sub">Enter the invite code your manager shared with you.</p>
+
+    <div class="field"><label>Invite Code</label><input type="text" id="suCode" placeholder="e.g. A1B2C3" style="text-transform:uppercase;"></div>
+    <div class="field"><label>Your Name</label><input type="text" id="suName" placeholder="e.g. Priya Sharma"></div>
+    <div class="field"><label>Email</label><input type="email" id="suEmail" placeholder="you@example.com"></div>
+    <div class="field"><label>Create Password</label><input type="password" id="suPassword" placeholder="At least 6 characters"></div>
+
+    <div id="suMsg" style="display:none; margin-bottom:16px; font-size:13px; text-align:center;"></div>
+    <div class="order-submit">
+      <button class="btn btn-fill" style="width:100%;" id="suBtn" onclick="doStaffSignup()">Create Account</button>
+    </div>
+    <p style="text-align:center; font-size:12.5px; margin-top:20px; color:#7a6a55;">
+      Already have an account? <a href="#" onclick="switchView('login'); return false;" style="color:var(--maroon); text-decoration:underline;">Sign in</a>
+    </p>
+  </div>
+</div>
+
+<!-- ================= NEW RESTAURANT ONBOARDING ================= -->
+<div class="view-panel" id="view-newrestaurant">
+  <div class="order-wrap" style="max-width:440px;">
+    <h2>Set Up Your Restaurant</h2>
+    <p class="sub">Creates a brand-new, fully isolated restaurant space — your data never mixes with anyone else's.</p>
+
+    <div class="field"><label>Restaurant Name</label><input type="text" id="nrName" placeholder="e.g. Spice Route"></div>
+    <div class="field"><label>Your Name (Owner)</label><input type="text" id="nrOwnerName" placeholder="e.g. Rohan Mehta"></div>
+    <div class="field"><label>Email</label><input type="email" id="nrEmail" placeholder="owner@example.com"></div>
+    <div class="field"><label>Create Password</label><input type="password" id="nrPassword" placeholder="At least 6 characters"></div>
+
+    <div id="nrMsg" style="display:none; margin-bottom:16px; font-size:13px; text-align:center;"></div>
+    <div class="order-submit">
+      <button class="btn btn-fill" style="width:100%;" id="nrBtn" onclick="doCreateRestaurant()">Create My Restaurant</button>
+    </div>
+    <p style="text-align:center; font-size:12.5px; margin-top:20px; color:#7a6a55;">
+      Already have an account? <a href="#" onclick="switchView('login'); return false;" style="color:var(--maroon); text-decoration:underline;">Sign in</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  window.currentRole = null;   // null = guest, not logged in
+  window.currentPerms = {};    // { canEdit, viewDashboard, updateOrderStatus, viewRevenue, managePayments }
+
+  function allowedViews(){
+    const v = ['website','order','login','confirmation','signup','newrestaurant','myorders'];
+    const p = window.currentPerms || {};
+    if(p.viewDashboard) v.push('dashboard','kitchen');
+    if(p.viewRevenue) v.push('revenue');
+    if(window.currentRole === 'superadmin') v.push('admin');
+    return v;
+  }
+
+  function switchView(name){
+    if(!allowedViews().includes(name)){
+      switchView('login');
+      const m = document.getElementById('loginMsg');
+      if(m){ m.style.display='block'; m.style.color='#C9412D'; m.textContent = 'Please sign in with a staff account to view this page.'; }
+      return;
+    }
+    document.querySelectorAll('.view-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('view-'+name).classList.add('active');
+    document.querySelectorAll('.view-switcher button[data-view]').forEach(b=>{
+      b.classList.toggle('active', b.dataset.view===name);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  document.querySelectorAll('.view-switcher button[data-view]').forEach(btn=>{
+    btn.addEventListener('click', ()=>switchView(btn.dataset.view));
+  });
+
+  let selectedOrderType = 'Dine-In';
+  let selectedTable = 'T-01';
+
+  function selectOrderType(el, showTable){
+    document.querySelectorAll('#orderTypeRow .order-type').forEach(t=>t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedOrderType = el.dataset.type;
+    document.getElementById('tableSection').classList.toggle('show', showTable);
+    if(!showTable) selectedTable = null;
+  }
+
+  // table numbers — count is controlled by Super Admin (Restaurant Settings), defaults to 24
+  window.rebuildTableGrid = function(count){
+    count = Math.max(1, parseInt(count) || 24);
+    const tableGrid = document.getElementById('tableGrid');
+    if(!tableGrid) return;
+    tableGrid.innerHTML = '';
+    for(let i=1;i<=count;i++){
+      const d = document.createElement('div');
+      d.className='table-num';
+      if(i===1) d.classList.add('selected');
+      d.textContent='T-'+String(i).padStart(2,'0');
+      d.onclick=()=>{
+        document.querySelectorAll('.table-num').forEach(t=>t.classList.remove('selected'));
+        d.classList.add('selected');
+        selectedTable = d.textContent;
+      };
+      tableGrid.appendChild(d);
+    }
+    selectedTable = 'T-01';
+  };
+  window.rebuildTableGrid(24); // default until Super Admin settings load
+</script>
+
+<!-- ================= FIREBASE (Firestore) ================= -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+  import {
+    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, collection, addDoc, deleteDoc,
+    onSnapshot, serverTimestamp, query, orderBy, updateDoc, where, limit, getDocs
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNrMzxswuBVqw_1NQYaWsmaGHkM0YCYjI",
+    authDomain: "angeethi-86d9e.firebaseapp.com",
+    projectId: "angeethi-86d9e",
+    storageBucket: "angeethi-86d9e.firebasestorage.app",
+    messagingSenderId: "800897535976",
+    appId: "1:800897535976:web:43575ce4292cd5b7a4de5d",
+    measurementId: "G-K1Y687T43J"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  // ---- MULTI-TENANT: which restaurant's data this page instance shows ----
+  // Pass ?r=<restaurantId> in the URL to point this same file at a different
+  // restaurant. Without it, it falls back to the default restaurant below —
+  // this keeps the existing Angeethi link working exactly as before.
+  const DEFAULT_RESTAURANT_ID = 'angeethi';
+  window.restaurantId = new URLSearchParams(window.location.search).get('r') || DEFAULT_RESTAURANT_ID;
+  { const el = document.getElementById('thisRestaurantId'); if(el) el.textContent = window.restaurantId; }
+  isSupported().then(ok => { if(ok) getAnalytics(app); }).catch(()=>{});
+
+  /* ---------- 0. AUTH: login, logout, role lookup ---------- */
+  window.doLogin = async function(){
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const msg = document.getElementById('loginMsg');
+    const btn = document.getElementById('loginBtn');
+    if(!email || !password){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Enter both email and password.';
+      return;
+    }
+    btn.textContent = 'Signing in...';
+    try{
+      await signInWithEmailAndPassword(auth, email, password);
+      msg.style.display='none';
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Sign in failed — check email/password.';
+    }
+    btn.textContent = 'Sign In';
+  };
+
+  window.doLogout = async function(){
+    await signOut(auth);
+    switchView('website');
+  };
+
+  function updateAuthUI(role, email, perms){
+    perms = perms || {};
+    const btnDash = document.getElementById('btnDashboard');
+    const btnKitchen = document.getElementById('btnKitchen');
+    const btnRev = document.getElementById('btnRevenue');
+    const btnAdmin = document.getElementById('btnAdmin');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnLogout = document.getElementById('btnLogout');
+    const badge = document.getElementById('authBadge');
+    const loginForm = document.getElementById('loginForm');
+    const loggedInBox = document.getElementById('loggedInBox');
+
+    btnDash.style.display = perms.viewDashboard ? 'inline-block' : 'none';
+    btnKitchen.style.display = perms.viewDashboard ? 'inline-block' : 'none';
+    btnRev.style.display = perms.viewRevenue ? 'inline-block' : 'none';
+    btnAdmin.style.display = role === 'superadmin' ? 'inline-block' : 'none';
+
+    if(role){
+      btnLogin.style.display = 'none';
+      btnLogout.style.display = 'inline-block';
+      badge.style.display = 'inline-block';
+      badge.textContent = role.toUpperCase() + (perms.canEdit ? ' · EDIT ON' : '');
+      loginForm.style.display = 'none';
+      loggedInBox.style.display = 'block';
+      document.getElementById('loggedInEmail').textContent = email;
+      document.getElementById('loggedInRole').textContent = role;
+    } else {
+      btnLogin.style.display = 'inline-block';
+      btnLogout.style.display = 'none';
+      badge.style.display = 'none';
+      loginForm.style.display = 'block';
+      loggedInBox.style.display = 'none';
+    }
+
+    setEditMode(!!perms.canEdit);
+  }
+
+  function effectivePermissions(role, data){
+    const p = (data && data.permissions) || {};
+    const isSuper = role === 'superadmin';
+    return {
+      canEdit:          isSuper || p.canEdit === true || data?.canEdit === true, // canEdit kept for backward compatibility
+      viewDashboard:    isSuper || p.viewDashboard === true,
+      updateOrderStatus:isSuper || p.updateOrderStatus === true,
+      viewRevenue:      isSuper || p.viewRevenue === true,
+      managePayments:   isSuper || p.managePayments === true,
+      editMenu:         isSuper || p.editMenu === true
+    };
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if(user){
+      try{
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        const data = snap.exists() ? snap.data() : null;
+        const role = data ? (data.role || null) : null;
+        const perms = effectivePermissions(role, data);
+        window.currentRole = role;
+        window.currentPerms = perms;
+        window.currentUserName = (data && data.name) || user.email || 'Staff';
+        window.currentUserUid = user.uid;
+        updateAuthUI(role, user.email, perms);
+        startOrdersListener();
+        if(!role){
+          const msg = document.getElementById('loginMsg');
+          msg.style.display='block'; msg.style.color='#C9412D';
+          msg.textContent = 'Signed in, but no role is set for this account yet. Ask Super Admin to add one in Firestore → users → your UID → role.';
+        }
+      }catch(e){
+        window.currentRole = null;
+        window.currentPerms = {};
+        updateAuthUI(null, null, {});
+      }
+    } else {
+      window.currentRole = null;
+      window.currentPerms = {};
+      updateAuthUI(null, null, {});
+      startOrdersListener();
+      if(document.getElementById('view-dashboard').classList.contains('active') || document.getElementById('view-revenue').classList.contains('active') || document.getElementById('view-admin').classList.contains('active')){
+        switchView('website');
+      }
+    }
+  });
+
+  /* ---------- SUPER ADMIN: manage owner/manager/staff accounts ---------- */
+  const usersCol = collection(db, "users");
+  const invitesCol = collection(db, "invites");
+
+  window.createInvite = async function(){
+    const msg = document.getElementById('inviteMsg');
+    const role = document.getElementById('invRole').value;
+    const permissions = {
+      canEdit: document.getElementById('invPermEdit').checked,
+      viewDashboard: document.getElementById('invPermDash').checked,
+      updateOrderStatus: document.getElementById('invPermStatus').checked,
+      viewRevenue: document.getElementById('invPermRev').checked,
+      managePayments: document.getElementById('invPermPay').checked,
+      editMenu: document.getElementById('invPermMenu').checked
+    };
+    const code = Array.from({length:6}, () => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*32)]).join('');
+    try{
+      await setDoc(doc(db,'invites', code), { role, permissions, restaurantId: window.restaurantId, used:false, createdAt: serverTimestamp() });
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.innerHTML = `Invite created — share this code: <strong style="font-size:16px; letter-spacing:.1em;">${code}</strong>`;
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Could not create invite — check Firestore rules for /invites.';
+      console.warn(e);
+    }
+  };
+
+  window.revokeInvite = async function(code){
+    if(!confirm('Revoke this invite code?')) return;
+    try{ await deleteDoc(doc(db,'invites', code)); }catch(e){ console.warn(e); }
+  };
+
+  onSnapshot(query(invitesCol, where('restaurantId','==', window.restaurantId)), snap => {
+    const body = document.getElementById('invitesTableBody');
+    if(!body) return;
+    const rows = snap.docs.map(d => {
+      const inv = d.data();
+      return `<tr>
+        <td style="font-family:'Marcellus'; letter-spacing:.06em;">${d.id}</td>
+        <td>${inv.role}</td>
+        <td>${inv.used ? '✓ Used' : 'Active'}</td>
+        <td>${inv.used ? '—' : `<button class="btn btn-small" style="background:#C9412D;color:#fff;" onclick="revokeInvite('${d.id}')">Revoke</button>`}</td>
+      </tr>`;
+    }).join('');
+    body.innerHTML = rows || '<tr><td colspan="4" style="text-align:center;color:#9a8a72;">No invites yet — generate one above.</td></tr>';
+  }, err => console.warn('Invites listener error (check Firestore rules for /invites):', err.message));
+
+  window.doStaffSignup = async function(){
+    const code = document.getElementById('suCode').value.trim().toUpperCase();
+    const name = document.getElementById('suName').value.trim();
+    const email = document.getElementById('suEmail').value.trim();
+    const password = document.getElementById('suPassword').value;
+    const msg = document.getElementById('suMsg');
+    const btn = document.getElementById('suBtn');
+
+    if(!code || !name || !email || !password){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Please fill in every field.';
+      return;
+    }
+    btn.textContent = 'Creating account...';
+    try{
+      const inviteSnap = await getDoc(doc(db,'invites', code));
+      if(!inviteSnap.exists() || inviteSnap.data().used || inviteSnap.data().restaurantId !== window.restaurantId){
+        msg.style.display='block'; msg.style.color='#C9412D';
+        msg.textContent = 'Invalid or already-used invite code.';
+        btn.textContent = 'Create Account';
+        return;
+      }
+      const invite = inviteSnap.data();
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db,'users', cred.user.uid), {
+        name, email, role: invite.role, permissions: invite.permissions, restaurantId: window.restaurantId
+      });
+      await updateDoc(doc(db,'invites', code), { used:true, usedBy: cred.user.uid });
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.textContent = 'Account created! Signing you in...';
+      // onAuthStateChanged fires automatically and takes it from here
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = e.code === 'auth/email-already-in-use'
+        ? 'That email is already registered — try signing in instead.'
+        : (e.code === 'auth/weak-password' ? 'Password should be at least 6 characters.' : 'Could not create account: ' + e.message);
+      btn.textContent = 'Create Account';
+    }
+  };
+
+  window.doCreateRestaurant = async function(){
+    const name = document.getElementById('nrName').value.trim();
+    const ownerName = document.getElementById('nrOwnerName').value.trim();
+    const email = document.getElementById('nrEmail').value.trim();
+    const password = document.getElementById('nrPassword').value;
+    const msg = document.getElementById('nrMsg');
+    const btn = document.getElementById('nrBtn');
+
+    if(!name || !ownerName || !email || !password){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Please fill in every field.';
+      return;
+    }
+    btn.textContent = 'Creating your restaurant...';
+    try{
+      // build a readable, likely-unique restaurant ID from the name + a random suffix
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,30) || 'restaurant';
+      const suffix = Array.from({length:4}, () => '23456789abcdefghjkmnpqrstuvwxyz'[Math.floor(Math.random()*32)]).join('');
+      const newRestaurantId = `${slug}-${suffix}`;
+
+      await setDoc(doc(db,'restaurants', newRestaurantId), {
+        restaurantName: name, tableCount: 24, gstEnabled: false, gstPercent: 5, createdAt: serverTimestamp()
+      });
+
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db,'users', cred.user.uid), {
+        name: ownerName, email, role: 'superadmin',
+        restaurantId: newRestaurantId,
+        permissions: { canEdit:true, viewDashboard:true, updateOrderStatus:true, viewRevenue:true, managePayments:true, editMenu:true }
+      });
+
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.textContent = 'Restaurant created! Redirecting you to your new dashboard...';
+      // reload the page scoped to the new restaurantId — onAuthStateChanged then logs them straight in
+      setTimeout(() => {
+        window.location.href = window.location.pathname + '?r=' + newRestaurantId;
+      }, 1200);
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = e.code === 'auth/email-already-in-use'
+        ? 'That email is already registered — try signing in instead.'
+        : (e.code === 'auth/weak-password' ? 'Password should be at least 6 characters.' : 'Could not create restaurant: ' + e.message);
+      btn.textContent = 'Create My Restaurant';
+    }
+  };
+
+  window.clearOwnerForm = function(){
+    document.getElementById('admUid').value = '';
+    document.getElementById('admName').value = '';
+    document.getElementById('admEmail').value = '';
+    document.getElementById('admRole').value = 'owner';
+    document.getElementById('permEdit').checked = false;
+    document.getElementById('permDash').checked = true;
+    document.getElementById('permStatus').checked = true;
+    document.getElementById('permRev').checked = false;
+    document.getElementById('permPay').checked = false;
+    document.getElementById('permMenu').checked = false;
+    document.getElementById('admMsg').style.display = 'none';
+  };
+
+  window.saveOwner = async function(){
+    const uid = document.getElementById('admUid').value.trim();
+    const name = document.getElementById('admName').value.trim();
+    const email = document.getElementById('admEmail').value.trim();
+    const role = document.getElementById('admRole').value;
+    const msg = document.getElementById('admMsg');
+
+    if(!uid || !name || !email){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'UID, name and email are all required.';
+      return;
+    }
+    const permissions = {
+      canEdit: document.getElementById('permEdit').checked,
+      viewDashboard: document.getElementById('permDash').checked,
+      updateOrderStatus: document.getElementById('permStatus').checked,
+      viewRevenue: document.getElementById('permRev').checked,
+      managePayments: document.getElementById('permPay').checked,
+      editMenu: document.getElementById('permMenu').checked
+    };
+    try{
+      await setDoc(doc(db, 'users', uid), { name, email, role, permissions, restaurantId: window.restaurantId }, { merge: true });
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.textContent = 'Saved — this account can now sign in with these permissions.';
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Could not save — check Firestore rules (Super Admin needs write access to /users).';
+      console.warn(e);
+    }
+  };
+
+  window.loadOwnerIntoForm = function(uid, data){
+    document.getElementById('admUid').value = uid;
+    document.getElementById('admName').value = data.name || '';
+    document.getElementById('admEmail').value = data.email || '';
+    document.getElementById('admRole').value = data.role || 'owner';
+    const p = data.permissions || {};
+    document.getElementById('permEdit').checked = !!p.canEdit;
+    document.getElementById('permDash').checked = !!p.viewDashboard;
+    document.getElementById('permStatus').checked = !!p.updateOrderStatus;
+    document.getElementById('permRev').checked = !!p.viewRevenue;
+    document.getElementById('permPay').checked = !!p.managePayments;
+    document.getElementById('permMenu').checked = !!p.editMenu;
+    document.getElementById('admMsg').style.display = 'none';
+    window.scrollTo({top:0, behavior:'smooth'});
+  };
+
+  const tick = v => v ? '✓' : '—';
+  onSnapshot(query(usersCol, where('restaurantId','==', window.restaurantId)), snap => {
+    const body = document.getElementById('usersTableBody');
+    if(!body) return; // page hasn't rendered this section (shouldn't happen, safe guard)
+    const rows = snap.docs.map(d => {
+      const u = d.data();
+      const p = u.permissions || {};
+      const isSuper = u.role === 'superadmin';
+      return `<tr style="cursor:pointer" onclick='loadOwnerIntoForm("${d.id}", ${JSON.stringify(u).replace(/'/g,"&#39;")})'>
+        <td>${u.name||'—'}</td>
+        <td>${u.email||'—'}</td>
+        <td>${u.role||'—'}</td>
+        <td>${isSuper ? '✓' : tick(p.canEdit)}</td>
+        <td>${isSuper ? '✓' : tick(p.viewDashboard)}</td>
+        <td>${isSuper ? '✓' : tick(p.updateOrderStatus)}</td>
+        <td>${isSuper ? '✓' : tick(p.viewRevenue)}</td>
+        <td>${isSuper ? '✓' : tick(p.managePayments)}</td>
+        <td>${isSuper ? '✓' : tick(p.editMenu)}</td>
+      </tr>`;
+    }).join('');
+    body.innerHTML = rows || '<tr><td colspan="9" style="text-align:center;color:#9a8a72;">No accounts yet.</td></tr>';
+  }, err => console.warn('Users listener error (Super Admin needs read access to /users):', err.message));
+
+  /* ---------- SUPER ADMIN: restaurant profile + settings (scoped to this restaurantId) ---------- */
+  const SETTINGS_DOC = doc(db, "restaurants", window.restaurantId);
+
+  window.saveSettings = async function(){
+    const msg = document.getElementById('settingsMsg');
+    const tableCount = parseInt(document.getElementById('settingTableCount').value) || 24;
+    const restaurantName = document.getElementById('settingRestName').value.trim();
+    const address = document.getElementById('settingAddress').value.trim();
+    const logoUrl = document.getElementById('settingLogoUrl').value.trim();
+    const gstEnabled = document.getElementById('settingGstEnabled').checked;
+    const gstPercent = parseFloat(document.getElementById('settingGstPercent').value) || 0;
+    const gstin = document.getElementById('settingGstin').value.trim();
+    try{
+      await setDoc(SETTINGS_DOC, { tableCount, restaurantName, address, logoUrl, gstEnabled, gstPercent, gstin }, { merge: true });
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.textContent = 'Saved — updates apply everywhere (receipts, table grid) automatically.';
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Could not save — check Firestore rules for /settings.';
+      console.warn(e);
+    }
+  };
+
+  onSnapshot(SETTINGS_DOC, snap => {
+    const data = snap.exists() ? snap.data() : {};
+    window.lastSettings = data;
+    const count = data.tableCount || 24;
+    const fields = {
+      settingTableCount: count,
+      settingRestName: data.restaurantName || '',
+      settingAddress: data.address || '',
+      settingLogoUrl: data.logoUrl || '',
+      settingGstPercent: data.gstPercent ?? 5,
+      settingGstin: data.gstin || ''
+    };
+    Object.entries(fields).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if(el && document.activeElement !== el) el.value = val;
+    });
+    const gstBox = document.getElementById('settingGstEnabled');
+    if(gstBox && document.activeElement !== gstBox) gstBox.checked = !!data.gstEnabled;
+    if(typeof window.rebuildTableGrid === 'function') window.rebuildTableGrid(count);
+  }, err => console.warn('Settings listener error (check Firestore rules for /settings):', err.message));
+
+  const menuCol = collection(db, "menu");
+  let currentPricingType = 'single';
+
+  window.setPricingType = function(type){
+    currentPricingType = type;
+    document.querySelectorAll('#pricingTypeRow .order-type').forEach(b=>{
+      b.classList.toggle('selected', b.dataset.pt === type);
+    });
+    document.getElementById('pricingSingle').style.display = type==='single' ? 'block' : 'none';
+    document.getElementById('pricingHalfFull').style.display = type==='halfFull' ? 'block' : 'none';
+    document.getElementById('pricingMultiple').style.display = type==='multiple' ? 'block' : 'none';
+  };
+
+  window.clearMenuForm = function(){
+    document.getElementById('menuItemId').value = '';
+    document.getElementById('menuName').value = '';
+    document.getElementById('menuShortDesc').value = '';
+    document.getElementById('menuFullDesc').value = '';
+    document.getElementById('menuCategory').value = 'Starters';
+    document.getElementById('menuImage').value = '';
+    document.getElementById('menuVeg').checked = false;
+    document.getElementById('menuBestseller').checked = false;
+    document.getElementById('menuSpicy').checked = false;
+    document.getElementById('menuAvailable').checked = true;
+    document.getElementById('menuPriceSingle').value = '';
+    document.getElementById('menuHalfName').value = 'Half';
+    document.getElementById('menuHalfPrice').value = '';
+    document.getElementById('menuFullName').value = 'Full';
+    document.getElementById('menuFullPrice').value = '';
+    document.getElementById('menuSizes').value = '';
+    setPricingType('single');
+    document.getElementById('menuMsg').style.display = 'none';
+  };
+
+  function formatMenuPrice(item){
+    if(item.pricingType === 'halfFull'){
+      return `${item.halfName||'Half'} ₹${item.halfPrice||0} / ${item.fullName||'Full'} ₹${item.fullPrice||0}`;
+    }
+    if(item.pricingType === 'multiple' && Array.isArray(item.sizes)){
+      return item.sizes.map(s=>`${s.name} ₹${s.price}`).join(' / ');
+    }
+    return `₹${item.price||0}`;
+  }
+
+  window.saveMenuItem = async function(){
+    const msg = document.getElementById('menuMsg');
+    const name = document.getElementById('menuName').value.trim();
+    if(!name){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Item name is required.';
+      return;
+    }
+    const item = {
+      name,
+      restaurantId: window.restaurantId,
+      shortDesc: document.getElementById('menuShortDesc').value.trim(),
+      fullDesc: document.getElementById('menuFullDesc').value.trim(),
+      category: document.getElementById('menuCategory').value,
+      imageUrl: document.getElementById('menuImage').value.trim(),
+      veg: document.getElementById('menuVeg').checked,
+      bestseller: document.getElementById('menuBestseller').checked,
+      spicy: document.getElementById('menuSpicy').checked,
+      available: document.getElementById('menuAvailable').checked,
+      pricingType: currentPricingType
+    };
+    if(currentPricingType === 'single'){
+      item.price = parseFloat(document.getElementById('menuPriceSingle').value) || 0;
+    } else if(currentPricingType === 'halfFull'){
+      item.halfName = document.getElementById('menuHalfName').value.trim() || 'Half';
+      item.halfPrice = parseFloat(document.getElementById('menuHalfPrice').value) || 0;
+      item.fullName = document.getElementById('menuFullName').value.trim() || 'Full';
+      item.fullPrice = parseFloat(document.getElementById('menuFullPrice').value) || 0;
+    } else if(currentPricingType === 'multiple'){
+      const lines = document.getElementById('menuSizes').value.split('\n').map(l=>l.trim()).filter(Boolean);
+      item.sizes = lines.map(l=>{
+        const [n,p] = l.split(':');
+        return { name: (n||'').trim(), price: parseFloat(p)||0 };
+      });
+    }
+
+    const id = document.getElementById('menuItemId').value.trim();
+    try{
+      if(id){
+        await setDoc(doc(db,'menu', id), item, { merge:true });
+      } else {
+        await addDoc(menuCol, item);
+      }
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.textContent = 'Menu item saved.';
+      clearMenuForm();
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Could not save — check Firestore rules (Super Admin needs write access to /menu).';
+      console.warn(e);
+    }
+  };
+
+  window.editMenuItem = function(id, item){
+    document.getElementById('menuItemId').value = id;
+    document.getElementById('menuName').value = item.name || '';
+    document.getElementById('menuShortDesc').value = item.shortDesc || '';
+    document.getElementById('menuFullDesc').value = item.fullDesc || '';
+    document.getElementById('menuCategory').value = item.category || 'Starters';
+    document.getElementById('menuImage').value = item.imageUrl || '';
+    document.getElementById('menuVeg').checked = !!item.veg;
+    document.getElementById('menuBestseller').checked = !!item.bestseller;
+    document.getElementById('menuSpicy').checked = !!item.spicy;
+    document.getElementById('menuAvailable').checked = item.available !== false;
+    setPricingType(item.pricingType || 'single');
+    document.getElementById('menuPriceSingle').value = item.price || '';
+    document.getElementById('menuHalfName').value = item.halfName || 'Half';
+    document.getElementById('menuHalfPrice').value = item.halfPrice || '';
+    document.getElementById('menuFullName').value = item.fullName || 'Full';
+    document.getElementById('menuFullPrice').value = item.fullPrice || '';
+    document.getElementById('menuSizes').value = (item.sizes||[]).map(s=>`${s.name}:${s.price}`).join('\n');
+    window.scrollTo({top:0, behavior:'smooth'});
+  };
+
+  window.deleteMenuItem = async function(id){
+    if(!confirm('Delete this menu item? This cannot be undone.')) return;
+    try{ await deleteDoc(doc(db,'menu', id)); }catch(e){ console.warn(e); }
+  };
+
+  onSnapshot(query(menuCol, where('restaurantId','==', window.restaurantId)), snap => {
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // ---- admin table ----
+    const body = document.getElementById('menuTableBody');
+    if(body){
+      body.innerHTML = items.length ? items.map(it => `
+        <tr>
+          <td>${it.name}</td>
+          <td>${it.category||'—'}</td>
+          <td>${it.pricingType==='halfFull'?'Half & Full':it.pricingType==='multiple'?'Multiple Sizes':'Single'}</td>
+          <td>${formatMenuPrice(it)}</td>
+          <td>${it.bestseller?'✓':'—'}</td>
+          <td>${it.available!==false?'✓':'—'}</td>
+          <td>
+            <button class="btn btn-maroon-outline btn-small" onclick='editMenuItem("${it.id}", ${JSON.stringify(it).replace(/'/g,"&#39;")})'>Edit</button>
+            <button class="btn btn-small" style="background:#C9412D;color:#fff;" onclick="deleteMenuItem('${it.id}')">Delete</button>
+          </td>
+        </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:#9a8a72;">No menu items yet — add one above.</td></tr>';
+    }
+
+    // ---- public website menu preview (only replaces the static fallback once real items exist) ----
+    const pub = document.getElementById('publicMenuGrid');
+    if(pub && items.length){
+      const visible = items.filter(it=>it.available!==false).slice(0,6);
+      pub.innerHTML = visible.map(it => `
+        <div class="menu-card">
+          <div class="img" style="background-image:url('${it.imageUrl || 'https://images.unsplash.com/photo-1600891964092-4316c288032e?q=80&w=800&auto=format&fit=crop'}');">
+            ${it.bestseller ? '<span class="tag">Bestseller</span>' : (it.veg ? '<span class="tag">Vegetarian</span>' : '')}
+          </div>
+          <div class="body">
+            <h3><span class="veg-dot ${it.veg?'veg':'nonveg'}" title="${it.veg?'Vegetarian':'Non-Vegetarian'}"></span>${it.name}</h3>
+            <p>${it.shortDesc||''}</p>
+            <div class="price-row"><span>${it.pricingType==='halfFull'?'Half / Full':it.pricingType==='multiple'?'Sizes':''}</span><span class="price">${formatMenuPrice(it)}</span></div>
+          </div>
+        </div>`).join('');
+    }
+
+    // ---- feed the customer order-picker (Place Order tab) ----
+    window.lastMenuItems = items.filter(it => it.available !== false);
+    if(typeof window.renderOrderPicker === 'function') window.renderOrderPicker(window.lastMenuItems);
+  }, err => console.warn('Menu listener error (check Firestore rules for /menu):', err.message));
+
+  /* ---------- 1. LIVE-EDITABLE SITE CONTENT ---------- */
+  const CONTENT_DOC = doc(db, "content", window.restaurantId);
+  const editableEls = Array.from(document.querySelectorAll('[data-editable="1"]'));
+  editableEls.forEach((el, i) => { el.dataset.ceKey = 'field_' + i; });
+
+  function setEditMode(enabled){
+    editableEls.forEach(el => el.setAttribute('contenteditable', enabled ? 'true' : 'false'));
+    document.querySelector('.edit-badge').style.display = enabled ? 'block' : 'none';
+  }
+  setEditMode(false); // locked by default — only Super Admin unlocks this
+
+  async function loadContent(){
+    try{
+      const snap = await getDoc(CONTENT_DOC);
+      if(snap.exists()){
+        const data = snap.data();
+        editableEls.forEach(el => {
+          const key = el.dataset.ceKey;
+          if(data[key] !== undefined) el.innerHTML = data[key];
+        });
+      }
+    }catch(e){ console.warn('Could not load saved content (Firestore may need setup):', e.message); }
+  }
+  loadContent();
+
+  editableEls.forEach(el => {
+    el.addEventListener('blur', async () => {
+      try{
+        await setDoc(CONTENT_DOC, { [el.dataset.ceKey]: el.innerHTML }, { merge: true });
+      }catch(e){ console.warn('Save failed:', e.message); }
+    });
+  });
+
+  /* ---------- 2. ORDERS: place order, dashboard, revenue ---------- */
+  const ordersCol = collection(db, "orders");
+
+  window.orderCart = {};
+  window.lastPickLines = [];
+
+  window.setQty = function(key, label, price, delta, explicitValue){
+    const current = window.orderCart[key] ? window.orderCart[key].qty : 0;
+    const qty = explicitValue !== undefined ? Math.max(0, parseInt(explicitValue)||0) : Math.max(0, current + delta);
+    if(qty <= 0){ delete window.orderCart[key]; }
+    else { window.orderCart[key] = { label, price, qty }; }
+    renderStepperQtys();
+    renderCartSummary();
+    updateOrderTotal();
+  };
+
+  function renderStepperQtys(){
+    document.querySelectorAll('.qty-display[data-key]').forEach(el => {
+      const key = el.dataset.key;
+      el.textContent = window.orderCart[key] ? window.orderCart[key].qty : 0;
+    });
+  }
+
+  function renderCartSummary(){
+    const box = document.getElementById('cartSummary');
+    if(!box) return;
+    const lines = Object.entries(window.orderCart);
+    box.innerHTML = lines.length ? lines.map(([key,i]) => `
+      <div class="cart-line">
+        <span>${i.qty} × ${i.label}</span>
+        <span style="display:flex; align-items:center; gap:10px;">
+          ₹${(i.qty*i.price).toLocaleString('en-IN')}
+          <button class="remove-line" onclick="setQty('${key}','',0,0,0)" title="Remove">✕</button>
+        </span>
+      </div>`).join('') : '<p class="cart-empty">No items added yet — tap + next to a dish above.</p>';
+  }
+
+  function updateOrderTotal(){
+    const total = Object.values(window.orderCart).reduce((s,i)=>s+(i.price*i.qty),0);
+    const el = document.getElementById('orderTotalDisplay');
+    if(el) el.textContent = '₹'+total.toLocaleString('en-IN');
+    return total;
+  }
+
+  window.orderPickerState = { cat:'All', search:'', veg:false, spicy:false, bestseller:false, sort:'' };
+
+  window.renderOrderPicker = function(items){
+    const el = document.getElementById('orderMenuPicker');
+    if(!el) return;
+    const lines = [];
+    items.forEach(it => {
+      const cat = it.category || 'Other';
+      const meta = { veg: it.veg, spicy: it.spicy, bestseller: it.bestseller, category: cat };
+      if(it.pricingType === 'halfFull'){
+        lines.push({ key: it.id+'_half', label: `${it.name} (${it.halfName||'Half'})`, price: it.halfPrice||0, ...meta });
+        lines.push({ key: it.id+'_full', label: `${it.name} (${it.fullName||'Full'})`, price: it.fullPrice||0, ...meta });
+      } else if(it.pricingType === 'multiple' && Array.isArray(it.sizes)){
+        it.sizes.forEach(s => lines.push({ key: it.id+'_'+s.name, label: `${it.name} (${s.name})`, price: s.price||0, ...meta }));
+      } else {
+        lines.push({ key: it.id, label: it.name, price: it.price||0, ...meta });
+      }
+    });
+    window.lastPickLines = lines;
+
+    // category filter tabs (horizontally swipeable on mobile)
+    const cats = ['All', ...new Set(lines.map(l=>l.category))];
+    const tabsEl = document.getElementById('orderCatTabs');
+    if(tabsEl){
+      tabsEl.innerHTML = cats.map((c,i) => `<button type="button" class="cat-tab ${c===window.orderPickerState.cat?'active':''}" data-cat="${c}" onclick="filterOrderPicker('${c.replace(/'/g,"&#39;")}', this)">${c}</button>`).join('');
+    }
+
+    function renderLines(){
+      const st = window.orderPickerState;
+      let filtered = st.cat==='All' ? lines : lines.filter(l=>l.category===st.cat);
+      if(st.search) filtered = filtered.filter(l=>l.label.toLowerCase().includes(st.search.toLowerCase()));
+      if(st.veg) filtered = filtered.filter(l=>l.veg);
+      if(st.spicy) filtered = filtered.filter(l=>l.spicy);
+      if(st.bestseller) filtered = filtered.filter(l=>l.bestseller);
+      if(st.sort==='asc') filtered = [...filtered].sort((a,b)=>a.price-b.price);
+      if(st.sort==='desc') filtered = [...filtered].sort((a,b)=>b.price-a.price);
+
+      el.innerHTML = filtered.length ? filtered.map(l => {
+        const safeLabel = l.label.replace(/'/g,"&#39;");
+        const qty = window.orderCart[l.key] ? window.orderCart[l.key].qty : 0;
+        return `
+        <div class="pick-row">
+          <div class="pick-info"><div class="name"><span class="veg-dot ${l.veg?'veg':'nonveg'}"></span>${l.label}${l.bestseller?' ⭐':''}${l.spicy?' 🌶':''}</div><div class="price">₹${l.price}</div></div>
+          <div class="stepper">
+            <button type="button" onclick="setQty('${l.key}','${safeLabel}',${l.price},-1)">−</button>
+            <span class="qty-display" data-key="${l.key}">${qty}</span>
+            <button type="button" onclick="setQty('${l.key}','${safeLabel}',${l.price},1)">+</button>
+          </div>
+        </div>`;
+      }).join('') : '<p style="font-size:13px; color:#9a8a72; text-align:center;">No dishes match your search/filters.</p>';
+    }
+    window.filterOrderPicker = function(cat, btn){
+      window.orderPickerState.cat = cat;
+      document.querySelectorAll('#orderCatTabs .cat-tab').forEach(b=>b.classList.remove('active'));
+      if(btn) btn.classList.add('active');
+      renderLines();
+    };
+    window.filterOrderSearch = function(){
+      window.orderPickerState.search = document.getElementById('menuSearch').value.trim();
+      renderLines();
+    };
+    window.toggleQuickFilter = function(type, btn){
+      window.orderPickerState[type] = !window.orderPickerState[type];
+      btn.classList.toggle('active', window.orderPickerState[type]);
+      renderLines();
+    };
+    window.setPriceSort = function(val){
+      window.orderPickerState.sort = val;
+      renderLines();
+    };
+    window._renderOrderPickerLines = renderLines;
+    renderLines();
+    renderCartSummary();
+    updateOrderTotal();
+  };
+
+  window.selectedPaymentMode = 'UPI';
+  window.selectPaymentMode = function(el){
+    document.querySelectorAll('#paymentModeRow .order-type').forEach(b=>b.classList.remove('selected'));
+    el.classList.add('selected');
+    window.selectedPaymentMode = el.dataset.pm;
+  };
+
+  window.submitOrder = async function(){
+    const name = document.getElementById('ordName').value.trim();
+    const mobile = document.getElementById('ordMobile').value.trim();
+    const notes = document.getElementById('ordNotes').value.trim();
+    const items = Object.values(window.orderCart).map(i => ({ name: i.label, unitPrice: i.price, qty: i.qty, lineTotal: i.price*i.qty }));
+    const amount = updateOrderTotal();
+    const msg = document.getElementById('ordMsg');
+
+    if(!name || !mobile){
+      msg.style.display='block'; msg.style.color='var(--maroon)';
+      msg.textContent = 'Please enter your name and mobile number.';
+      return;
+    }
+    if(items.length === 0){
+      msg.style.display='block'; msg.style.color='var(--maroon)';
+      msg.textContent = 'Please select at least one item from the menu.';
+      return;
+    }
+    const btn = document.getElementById('ordSubmitBtn');
+    btn.textContent = 'Placing order...';
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const orderNumber = 'ANG-' + now.getFullYear() + pad(now.getMonth()+1) + pad(now.getDate())
+                       + '-' + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds())
+                       + '-' + Math.floor(100 + Math.random()*900); // e.g. ANG-20260813-143205-482
+    try{
+      const newOrderRef = await addDoc(ordersCol, {
+        orderNumber, name, mobile, notes, items,
+        restaurantId: window.restaurantId,
+        orderType: selectedOrderType,
+        table: selectedOrderType === 'Dine-In' ? selectedTable : '—',
+        amount,
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: window.selectedPaymentMode || 'UPI',
+        createdAt: serverTimestamp()
+      });
+      document.getElementById('ordName').value='';
+      document.getElementById('ordMobile').value='';
+      document.getElementById('ordNotes').value='';
+      window.orderCart = {};
+      renderOrderPicker(window.lastMenuItems || []);
+      btn.textContent = 'Place Order';
+      msg.style.display='none';
+      openOrderConfirmation(newOrderRef.id, orderNumber, items, amount, now);
+    }catch(e){
+      msg.style.display='block';
+      msg.style.color = '#C9412D';
+      msg.textContent = 'Could not place order — Firestore may not be enabled yet on this project.';
+      btn.textContent = 'Place Order';
+      console.warn(e);
+    }
+  };
+
+  const STATUS_CYCLE = ['pending','accepted','preparing','ready','served'];
+  const STATUS_LABEL = { pending:'Order Received', accepted:'Accepted', preparing:'Preparing', ready:'Ready', served:'Served', cancelled:'Cancelled' };
+  const statusPillClass = s => s==='served' ? 'complete' : s==='cancelled' ? 'cancelled' : s==='ready' ? 'ready' : s==='preparing' ? 'preparing' : s==='accepted' ? 'accepted' : 'pending';
+
+  let unsubscribeConfirmation = null;
+  function openOrderConfirmation(orderId, orderNumber, items, amount, placedAt){
+    switchView('confirmation');
+    document.getElementById('confOrderId').textContent = orderNumber;
+    document.getElementById('confOrderTime').textContent = placedAt.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('confItemsList').innerHTML = items.map(i =>
+      `<div class="conf-item-line"><span>${i.qty} × ${i.name}</span><span>₹${i.lineTotal.toLocaleString('en-IN')}</span></div>`
+    ).join('');
+    document.getElementById('confTotal').textContent = '₹'+amount.toLocaleString('en-IN');
+    window.lastConfirmedOrder = { orderId, orderNumber, items, amount, placedAt };
+
+    if(unsubscribeConfirmation) unsubscribeConfirmation();
+    unsubscribeConfirmation = onSnapshot(doc(db,'orders', orderId), snap => {
+      const status = snap.exists() ? (snap.data().status || 'pending') : 'pending';
+      const cancelledBanner = document.getElementById('cancelledBanner');
+      const tracker = document.getElementById('statusTracker');
+      if(status === 'cancelled'){
+        if(tracker) tracker.style.display = 'none';
+        if(cancelledBanner) cancelledBanner.style.display = 'block';
+        return;
+      }
+      if(tracker) tracker.style.display = 'flex';
+      if(cancelledBanner) cancelledBanner.style.display = 'none';
+      const currentIdx = STATUS_CYCLE.indexOf(status);
+      document.querySelectorAll('#statusTracker .status-step').forEach(step => {
+        const idx = STATUS_CYCLE.indexOf(step.dataset.step);
+        step.classList.toggle('done', idx < currentIdx);
+        step.classList.toggle('current', idx === currentIdx);
+      });
+      // show/hide table service-request buttons only for dine-in orders
+      const tableFromOrder = snap.data().table;
+      const svc = document.getElementById('serviceRequestBox');
+      if(svc) svc.style.display = (tableFromOrder && tableFromOrder !== '—') ? 'block' : 'none';
+      window.lastConfirmedTable = tableFromOrder;
+    });
+  }
+  window.cycleOrderStatus = async function(id, current){
+    if(!window.currentPerms?.updateOrderStatus){ alert("You don't have permission to update order status."); return; }
+    if(current === 'served' || current === 'cancelled') return;
+    const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current)+1) % STATUS_CYCLE.length];
+    try{
+      await updateDoc(doc(db,"orders", id), {
+        status: next,
+        lastUpdatedBy: window.currentUserName || 'Staff',
+        lastUpdatedByUid: window.currentUserUid || null
+      });
+      logAudit('order_status_change', id, { from: current, to: next });
+    }catch(e){ console.warn(e); }
+  };
+  window.cancelOrder = async function(id){
+    if(!window.currentPerms?.updateOrderStatus){ alert("You don't have permission to cancel orders."); return; }
+    if(!confirm('Cancel this order? This cannot be undone.')) return;
+    try{
+      await updateDoc(doc(db,"orders", id), { status: 'cancelled' });
+      logAudit('order_cancelled', id, {});
+    }catch(e){ console.warn(e); }
+  };
+
+  window.togglePriority = async function(id, value){
+    if(!window.currentPerms?.updateOrderStatus){ alert("You don't have permission to update this order."); return; }
+    try{ await updateDoc(doc(db,"orders", id), { priority: value }); }catch(e){ console.warn(e); }
+  };
+
+  window.toggleItemPrep = async function(orderId, itemIndex){
+    if(!window.currentPerms?.updateOrderStatus){ alert("You don't have permission to update this order."); return; }
+    const order = (window.lastAllOrders||[]).find(o => o.id === orderId);
+    if(!order || !order.items) return;
+    const items = order.items.map((it,idx) => idx===itemIndex ? { ...it, done: !it.done } : it);
+    try{ await updateDoc(doc(db,"orders", orderId), { items }); }catch(e){ console.warn(e); }
+  };
+
+  /* ---------- AUDIT LOG ---------- */
+  async function logAudit(action, target, details){
+    try{
+      await addDoc(collection(db,'auditLog'), {
+        action, target, details,
+        byUid: auth.currentUser ? auth.currentUser.uid : null,
+        byEmail: auth.currentUser ? auth.currentUser.email : 'guest',
+        at: serverTimestamp()
+      });
+    }catch(e){ /* non-critical, never block the main action if logging fails */ }
+  }
+
+  /* ---------- MY ORDERS / TRACK ORDER ---------- */
+  window.trackOrderById = async function(){
+    const code = document.getElementById('trackOrderId').value.trim();
+    const msg = document.getElementById('moMsg');
+    if(!code){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Please enter an Order ID.';
+      return;
+    }
+    msg.style.display='block'; msg.style.color='var(--maroon)'; msg.textContent = 'Searching...';
+    try{
+      const q = query(ordersCol, where('restaurantId','==', window.restaurantId), where('orderNumber','==',code), limit(1));
+      const snap = await getDocs(q);
+      if(snap.empty){
+        msg.style.display='block'; msg.style.color='#C9412D';
+        msg.textContent = 'No order found with that ID.';
+        return;
+      }
+      const d = snap.docs[0];
+      const o = { id: d.id, ...d.data() };
+      msg.style.display='none';
+      openOrderConfirmation(o.id, o.orderNumber, o.items||[], o.amount||0,
+        o.createdAt && o.createdAt.toDate ? o.createdAt.toDate() : new Date());
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Could not search — this may need a one-time Firestore index (check the browser console for a setup link).';
+      console.warn(e);
+    }
+  };
+
+  window.findMyOrders = async function(){
+    const mobile = document.getElementById('moMobile').value.trim();
+    const msg = document.getElementById('moMsg');
+    const results = document.getElementById('moResults');
+    if(!mobile){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Please enter your mobile number.';
+      return;
+    }
+    msg.style.display='block'; msg.style.color='var(--maroon)'; msg.textContent = 'Searching...';
+    try{
+      const q = query(ordersCol, where('restaurantId','==', window.restaurantId), where('mobile','==',mobile), orderBy('createdAt','desc'), limit(10));
+      const snap = await getDocs(q);
+      const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if(!orders.length){
+        msg.style.display='block'; msg.style.color='#C9412D';
+        msg.textContent = 'No orders found for this number.';
+        results.innerHTML = '';
+        return;
+      }
+      msg.style.display='none';
+      results.innerHTML = orders.map(o => `
+        <div style="border:1px solid #e3d3b8; border-radius:6px; padding:16px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-family:'Marcellus'; color:var(--maroon);">${fmtOrderId(o)}</span>
+            <span class="status-pill ${statusPillClass(o.status)}">${STATUS_LABEL[o.status]||o.status}</span>
+          </div>
+          <div style="font-size:12px; color:#7a6a55; margin-bottom:10px;">${fmtDateTime(o)} · ₹${(o.amount||0).toLocaleString('en-IN')}</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="btn btn-maroon-outline btn-small" onclick='reorderFromHistory(${JSON.stringify(o.items||[]).replace(/'/g,"&#39;")})'>Reorder</button>
+            <button class="btn btn-maroon-outline btn-small" onclick='viewPastReceipt(${JSON.stringify(o).replace(/'/g,"&#39;")})'>Receipt</button>
+          </div>
+        </div>`).join('');
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Could not search — this may need a one-time Firestore index (check the browser console for a setup link).';
+      console.warn(e);
+    }
+  };
+
+  window.reorderFromHistory = function(items){
+    window.orderCart = {};
+    items.forEach((i,idx) => { window.orderCart['reorder_'+idx] = { label: i.name, price: i.unitPrice, qty: i.qty }; });
+    renderOrderPicker(window.lastMenuItems || []);
+    switchView('order');
+  };
+
+  window.viewPastReceipt = function(order){
+    printReceipt({ orderNumber: order.orderNumber, items: order.items||[], amount: order.amount||0, placedAt: order.createdAt?.toDate ? order.createdAt.toDate() : new Date(), table: order.table });
+  };
+
+  /* ---------- RECEIPT: print / PDF / WhatsApp ---------- */
+  window.printReceipt = function(orderData){
+    if(!orderData){ alert('No order to print yet.'); return; }
+    const s = window.lastSettings || {};
+    const win = window.open('', '_blank', 'width=420,height=650');
+    const itemsHtml = orderData.items.map(i => `<tr><td>${i.qty} × ${i.name}</td><td style="text-align:right;">₹${i.lineTotal.toLocaleString('en-IN')}</td></tr>`).join('');
+    const gstPct = s.gstPercent ?? 5;
+    const gstLine = s.gstEnabled ? `<tr><td>GST (${gstPct}%)</td><td style="text-align:right;">₹${Math.round(orderData.amount*gstPct/100).toLocaleString('en-IN')}</td></tr>` : '';
+    const grandTotal = s.gstEnabled ? Math.round(orderData.amount*(1+gstPct/100)) : orderData.amount;
+    win.document.write(`
+      <html><head><title>Receipt ${orderData.orderNumber}</title>
+      <style>
+        body{ font-family: Georgia, serif; padding:24px; color:#2B2118; max-width:360px; margin:0 auto; }
+        h2{ text-align:center; margin-bottom:2px; } p{ text-align:center; margin:2px 0; font-size:12px; }
+        table{ width:100%; border-collapse:collapse; margin-top:16px; font-size:13px; }
+        td{ padding:4px 0; border-bottom:1px dashed #ccc; }
+        .tot{ font-weight:bold; border-top:2px solid #000; font-size:15px; }
+        .hr{ border-top:1px dashed #999; margin:12px 0; }
+      </style></head><body>
+        ${s.logoUrl ? `<img src="${s.logoUrl}" style="display:block;margin:0 auto 10px;max-height:60px;">` : ''}
+        <h2>${s.restaurantName || 'Angeethi'}</h2>
+        <p>${s.address || ''}</p>
+        ${s.gstEnabled && s.gstin ? `<p>GSTIN: ${s.gstin}</p>` : ''}
+        <div class="hr"></div>
+        <p>Order: ${orderData.orderNumber} ${orderData.table && orderData.table!=='—' ? '· '+orderData.table : ''}</p>
+        <p>${orderData.placedAt.toLocaleString('en-IN')}</p>
+        <table>${itemsHtml}${gstLine}
+          <tr class="tot"><td>Total</td><td style="text-align:right;">₹${grandTotal.toLocaleString('en-IN')}</td></tr>
+        </table>
+        <div class="hr"></div>
+        <p>Thank you for dining with us!</p>
+        <script>window.onload = () => window.print();<\/script>
+      </body></html>`);
+    win.document.close();
+  };
+
+  window.shareReceiptWhatsapp = function(orderData){
+    if(!orderData){ alert('No order to share yet.'); return; }
+    const s = window.lastSettings || {};
+    const gstPct = s.gstPercent ?? 5;
+    let text = `*${s.restaurantName || 'Angeethi'}*\n`;
+    if(s.address) text += `${s.address}\n`;
+    if(s.gstEnabled && s.gstin) text += `GSTIN: ${s.gstin}\n`;
+    text += `\nOrder: ${orderData.orderNumber}`;
+    if(orderData.table && orderData.table !== '—') text += ` · ${orderData.table}`;
+    text += `\n${orderData.placedAt.toLocaleString('en-IN')}\n\n`;
+    orderData.items.forEach(i => text += `${i.qty} × ${i.name} — ₹${i.lineTotal}\n`);
+    if(s.gstEnabled){
+      const gstAmt = Math.round(orderData.amount*gstPct/100);
+      text += `\nSubtotal: ₹${orderData.amount.toLocaleString('en-IN')}`;
+      text += `\nGST (${gstPct}%): ₹${gstAmt.toLocaleString('en-IN')}`;
+      text += `\n*Total: ₹${Math.round(orderData.amount+gstAmt).toLocaleString('en-IN')}*`;
+    } else {
+      text += `\n*Total: ₹${orderData.amount.toLocaleString('en-IN')}*`;
+    }
+    text += `\n\nThank you for dining with us!`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  };
+
+  /* ---------- CALL WAITER / SERVICE REQUESTS ---------- */
+  const serviceCol = collection(db,'serviceRequests');
+  const SERVICE_LABELS = { waiter:'🔔 Call Waiter', water:'💧 Water', plate:'🍽️ Extra Plate', bill:'🧾 Bill Please', clear:'🧹 Clear Table' };
+
+  window.requestService = async function(type){
+    const table = window.lastConfirmedTable || 'Unknown';
+    const msgEl = document.getElementById('serviceMsg');
+    try{
+      await addDoc(serviceCol, { type, table, restaurantId: window.restaurantId, status:'pending', createdAt: serverTimestamp() });
+      msgEl.style.display='block';
+      msgEl.textContent = `${SERVICE_LABELS[type]} request sent to staff!`;
+    }catch(e){
+      msgEl.style.display='block'; msgEl.style.color='#C9412D';
+      msgEl.textContent = 'Could not send request — check Firestore rules for /serviceRequests.';
+    }
+  };
+
+  let serviceFirstLoad = true;
+  onSnapshot(query(serviceCol, where('restaurantId','==', window.restaurantId), orderBy('createdAt','desc'), limit(30)), snap => {
+    if(!serviceFirstLoad){
+      snap.docChanges().forEach(c => { if(c.type==='added' && c.doc.data().status==='pending') playBeep(); });
+    }
+    serviceFirstLoad = false;
+    const pending = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(r=>r.status==='pending');
+    const badge = document.getElementById('serviceReqBadge');
+    if(badge) badge.textContent = pending.length ? pending.length : '';
+    const box = document.getElementById('serviceReqList');
+    if(box){
+      box.innerHTML = pending.length ? pending.map(r => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--white); border-radius:6px; padding:12px 16px; margin-bottom:8px; box-shadow:0 4px 12px rgba(0,0,0,.06);">
+          <span><strong>${SERVICE_LABELS[r.type]||r.type}</strong> — Table ${r.table}</span>
+          <button class="btn btn-small" style="background:var(--green);color:#fff;" onclick="resolveServiceRequest('${r.id}')">Done</button>
+        </div>`).join('') : '<p style="color:#9a8a72; font-size:13px;">No pending requests.</p>';
+    }
+  }, err => console.warn('Service requests listener error (check Firestore rules for /serviceRequests):', err.message));
+
+  window.resolveServiceRequest = async function(id){
+    try{ await updateDoc(doc(db,'serviceRequests', id), { status:'done' }); }catch(e){ console.warn(e); }
+  };
+
+  window.cyclePaymentStatus = async function(id, current){
+    if(!window.currentPerms?.managePayments){ alert("You don't have permission to update payment status."); return; }
+    const next = current === 'pending' ? 'complete' : 'pending';
+    try{ await updateDoc(doc(db,"orders", id), { paymentStatus: next }); }catch(e){ console.warn(e); }
+  };
+
+  const typeLabel = t => t === 'Home Delivery' ? 'Parcel' : t;
+  const fmtOrderId = o => o.orderNumber || ('#'+o.id.slice(0,6).toUpperCase());
+  const fmtDateTime = o => (o.createdAt && o.createdAt.toDate) ? o.createdAt.toDate().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+
+  window.dashFilter = 'today';
+  window.setDashFilter = function(f){
+    window.dashFilter = f;
+    document.querySelectorAll('#dashFilterRow .order-type').forEach(b=>b.classList.toggle('selected', b.dataset.filter===f));
+    document.getElementById('dashTitle').textContent = f==='today' ? "Today's Orders" : 'All Orders';
+    if(typeof window.renderDashboard === 'function') window.renderDashboard();
+  };
+
+  let unsubscribeOrders = null;
+  let kdsSoundOn = true;
+  let kdsFirstLoad = true;
+  window.toggleKitchenSound = function(){
+    kdsSoundOn = !kdsSoundOn;
+    document.getElementById('kdsSoundBtn').textContent = kdsSoundOn ? '🔔 Sound: On' : '🔕 Sound: Off';
+  };
+  function playBeep(){
+    if(!kdsSoundOn) return;
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
+      setTimeout(()=>{ // second beep for emphasis
+        const ctx2 = new (window.AudioContext || window.webkitAudioContext)();
+        const o2 = ctx2.createOscillator(); const g2 = ctx2.createGain();
+        o2.type='sine'; o2.frequency.value=1100;
+        g2.gain.setValueAtTime(0.001, ctx2.currentTime);
+        g2.gain.exponentialRampToValueAtTime(0.3, ctx2.currentTime+0.02);
+        g2.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime+0.3);
+        o2.connect(g2); g2.connect(ctx2.destination);
+        o2.start(); o2.stop(ctx2.currentTime+0.35);
+      }, 250);
+    }catch(e){ /* audio blocked until user interacts with the page — harmless */ }
+  }
+
+  function playReadyChime(){
+    if(!kdsSoundOn) return;
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [660, 880, 1320].forEach((freq, i) => {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type='triangle'; osc.frequency.value = freq;
+        const start = ctx.currentTime + i*0.14;
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(0.28, start+0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start+0.3);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(start); osc.stop(start+0.32);
+      });
+    }catch(e){}
+  }
+
+  function showReadyToast(orderLabel){
+    let toast = document.getElementById('readyOrderToast');
+    if(!toast){
+      toast = document.createElement('div');
+      toast.id = 'readyOrderToast';
+      toast.style.cssText = 'position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:1000; background:var(--green); color:#fff; padding:14px 28px; border-radius:30px; font-weight:700; font-size:14px; box-shadow:0 10px 28px rgba(0,0,0,.3); animation:kdsPulse 1s ease-in-out 2;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = `🛎 ${orderLabel} is READY for pickup/serving!`;
+    toast.style.display = 'block';
+    clearTimeout(window._readyToastTimer);
+    window._readyToastTimer = setTimeout(()=>{ toast.style.display = 'none'; }, 5000);
+  }
+
+  function showNewOrderToast(count){
+    let toast = document.getElementById('newOrderToast');
+    if(!toast){
+      toast = document.createElement('div');
+      toast.id = 'newOrderToast';
+      toast.style.cssText = 'position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:1000; background:var(--saffron); color:var(--maroon-dark); padding:14px 28px; border-radius:30px; font-weight:700; font-size:14px; box-shadow:0 10px 28px rgba(0,0,0,.3); animation:kdsPulse 1s ease-in-out 2;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = `🔔 ${count} New Order${count>1?'s':''}!`;
+    toast.style.display = 'block';
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(()=>{ toast.style.display = 'none'; }, 4000);
+  }
+
+  window.trendPeriod = 'daily';
+  window.setTrendPeriod = function(period){
+    window.trendPeriod = period;
+    document.querySelectorAll('#trendPeriodRow .order-type').forEach(b=>b.classList.toggle('selected', b.dataset.period===period));
+    const activeOrders = (window.lastAllOrders||[]).filter(o=>o.status!=='cancelled');
+    window.renderSalesTrend(activeOrders);
+  };
+
+  window.renderSalesTrend = function(activeOrders){
+    const el = document.getElementById('chartRevenueTrend');
+    if(!el) return;
+    const period = window.trendPeriod;
+    let buckets = []; // { label, start, end }
+
+    if(period === 'daily'){
+      for(let i=6; i>=0; i--){
+        const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+        const end = new Date(d); end.setDate(end.getDate()+1);
+        buckets.push({ label: d.toLocaleDateString('en-IN',{weekday:'short'}), start: d, end });
+      }
+    } else if(period === 'weekly'){
+      for(let i=7; i>=0; i--){
+        const end = new Date(); end.setHours(0,0,0,0); end.setDate(end.getDate() - i*7 + 1);
+        const start = new Date(end); start.setDate(start.getDate()-7);
+        buckets.push({ label: 'W'+(8-i), start, end });
+      }
+    } else { // monthly
+      for(let i=5; i>=0; i--){
+        const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); d.setMonth(d.getMonth()-i);
+        const end = new Date(d); end.setMonth(end.getMonth()+1);
+        buckets.push({ label: d.toLocaleDateString('en-IN',{month:'short'}), start: d, end });
+      }
+    }
+
+    const values = buckets.map(b =>
+      activeOrders.filter(o => o.createdAt && o.createdAt.toDate && o.createdAt.toDate() >= b.start && o.createdAt.toDate() < b.end)
+                  .reduce((s,o)=>s+(o.amount||0),0)
+    );
+    const maxVal = Math.max(1, ...values);
+    el.innerHTML = buckets.map((b,i) => `
+      <div class="trend-bar-wrap">
+        <span class="trend-amt">${values[i] ? '₹'+Math.round(values[i]/1000*10)/10+'k' : ''}</span>
+        <div class="trend-bar" style="height:${Math.max(3,(values[i]/maxVal*100))}%"></div>
+        <span class="trend-label">${b.label}</span>
+      </div>`).join('');
+  };
+
+  window.startOrdersListener = function(){
+    if(unsubscribeOrders) unsubscribeOrders(); // stop any previous (dead) listener first
+
+    unsubscribeOrders = onSnapshot(query(ordersCol, where('restaurantId','==', window.restaurantId), orderBy('createdAt','desc')), snap => {
+    const allOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    window.lastAllOrders = allOrders;
+
+    // ---- beep + toast on newly-arrived pending orders (skip the very first snapshot on page load) ----
+    if(!kdsFirstLoad){
+      let newCount = 0;
+      snap.docChanges().forEach(change => {
+        const data = change.doc.data();
+        if(change.type === 'added' && data.status === 'pending'){ playBeep(); newCount++; }
+        if(change.type === 'modified' && data.status === 'ready' && window._lastKnownStatus?.[change.doc.id] !== 'ready'){
+          playReadyChime();
+          showReadyToast(fmtOrderId({ id: change.doc.id, ...data }));
+        }
+      });
+      if(newCount > 0) showNewOrderToast(newCount);
+    }
+    kdsFirstLoad = false;
+    window._lastKnownStatus = {};
+    allOrders.forEach(o => { window._lastKnownStatus[o.id] = o.status; });
+
+    // ---- Kitchen Display System ----
+    window.renderKitchen = function(){
+      const kdsGrid = document.getElementById('kdsGrid');
+      if(!kdsGrid) return;
+      const nowMs = Date.now();
+      const active = allOrders.filter(o => o.status !== 'served' && o.status !== 'cancelled').sort((a,b)=>{
+        if(!!a.priority !== !!b.priority) return a.priority ? -1 : 1;
+        const order = ['pending','accepted','preparing','ready'];
+        if(a.status !== b.status) return order.indexOf(a.status) - order.indexOf(b.status);
+        return 0;
+      });
+      const nextAction = { pending:['Accept Order','accepted'], accepted:['Start Cooking','preparing'], preparing:['Mark Ready','ready'], ready:['Mark Served','served'] };
+      kdsGrid.innerHTML = active.length ? active.map(o => {
+        const createdMs = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate().getTime() : nowMs;
+        const elapsedMin = Math.floor((nowMs - createdMs)/60000);
+        const overdue = elapsedMin >= 15 && o.status !== 'ready';
+        const [label, next] = nextAction[o.status] || ['Mark Served','served'];
+        const itemsHtml = (o.items||[]).map((i,idx) => `
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; ${i.done?'opacity:.5; text-decoration:line-through;':''}">
+            <input type="checkbox" ${i.done?'checked':''} onclick="toggleItemPrep('${o.id}', ${idx})"> ${i.qty}× ${i.name}
+          </label>`).join('') || '—';
+        return `
+        <div class="kds-card ${o.status==='served'?'complete':o.status}" style="${overdue?'box-shadow:0 0 0 3px #C9412D;':''} ${o.priority?'box-shadow:0 0 0 3px var(--saffron);':''}">
+          ${o.priority ? '<div style="color:var(--saffron); font-size:11px; font-weight:700; margin-bottom:6px;">🔥 PRIORITY</div>' : ''}
+          ${overdue ? '<div style="color:#C9412D; font-size:11px; font-weight:700; margin-bottom:6px;">⚠ OVERDUE</div>' : ''}
+          <div class="kds-id">${fmtOrderId(o)}</div>
+          <div class="kds-meta">${o.orderType}${o.table && o.table!=='—' ? ' · '+o.table : ''} · ⏱ ${elapsedMin} min ago</div>
+          <div class="kds-items">${itemsHtml}</div>
+          ${o.notes ? `<div style="font-size:12px; color:#C9412D; margin-bottom:10px;">Note: ${o.notes}</div>` : ''}
+          <button class="kds-btn ${o.status==='ready'?'to-complete':'to-preparing'}" onclick="cycleOrderStatus('${o.id}','${o.status}')">${label}</button>
+          <div style="display:flex; gap:8px; margin-top:6px;">
+            <button onclick="togglePriority('${o.id}', ${!o.priority})" style="flex:1; background:none; border:1px solid #e3d3b8; border-radius:4px; color:var(--maroon); font-size:11px; cursor:pointer; padding:6px;">${o.priority?'Remove Priority':'🔥 Mark Priority'}</button>
+            <button onclick="cancelOrder('${o.id}')" style="flex:1; background:none; border:1px solid #e3d3b8; border-radius:4px; color:#C9412D; font-size:11px; cursor:pointer; padding:6px;">Cancel</button>
+          </div>
+        </div>`;
+      }).join('') : '<p style="grid-column:1/-1; text-align:center; color:#9a8a72;">No active orders right now.</p>';
+    };
+    window.renderKitchen();
+    if(!window.kdsTimerStarted){ window.kdsTimerStarted = true; setInterval(()=>{ if(typeof window.renderKitchen==='function') window.renderKitchen(); }, 60000); }
+
+    const startOfToday0 = new Date(); startOfToday0.setHours(0,0,0,0);
+    const todaysOrders = allOrders.filter(o => o.createdAt && o.createdAt.toDate && o.createdAt.toDate() >= startOfToday0);
+
+    window.renderDashboard = function(){
+      const orders = window.dashFilter === 'today' ? todaysOrders : allOrders;
+
+      // ---- dashboard stats ----
+      const total = orders.length;
+      const dine = orders.filter(o=>o.orderType==='Dine-In').length;
+      const takeaway = orders.filter(o=>o.orderType==='Takeaway').length;
+      const delivery = orders.filter(o=>o.orderType==='Home Delivery').length;
+      const completed = orders.filter(o=>o.status==='served').length;
+      const pending = orders.filter(o=>o.status!=='served' && o.status!=='cancelled').length;
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statDine').textContent = dine;
+      document.getElementById('statTakeaway').textContent = takeaway;
+      document.getElementById('statDelivery').textContent = delivery;
+      document.getElementById('statComplete').textContent = completed;
+      document.getElementById('statPending').textContent = pending;
+
+      // ---- dashboard table ----
+      const dashBody = document.getElementById('dashTableBody');
+      if(dashBody){
+        dashBody.innerHTML = orders.length ? orders.map(o => `
+          <tr>
+            <td>${fmtOrderId(o)}</td>
+            <td>${fmtDateTime(o)}</td>
+            <td>${o.name}</td>
+            <td>${typeLabel(o.orderType)}</td>
+            <td>${o.table || '—'}</td>
+            <td>₹${(o.amount||0).toLocaleString('en-IN')}</td>
+            <td>
+              <span class="status-pill ${statusPillClass(o.status)}" style="cursor:pointer" onclick="cycleOrderStatus('${o.id}','${o.status}')">${STATUS_LABEL[o.status]||o.status}</span>
+              ${o.status!=='served' && o.status!=='cancelled' ? `<button onclick="cancelOrder('${o.id}')" style="border:none;background:none;color:#C9412D;font-size:11px;cursor:pointer;margin-left:6px;" title="Cancel order">✕</button>` : ''}
+            </td>
+            <td><span class="status-pill ${o.paymentStatus==='complete'?'complete':'pending'}" style="cursor:pointer" onclick="cyclePaymentStatus('${o.id}','${o.paymentStatus}')">${o.paymentStatus}</span></td>
+          </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:#9a8a72;">No orders yet — place one from "Place Order".</td></tr>';
+      }
+    };
+    window.renderDashboard();
+
+    const orders = allOrders; // keep the rest of this listener (revenue/report) scoped to all-time data
+
+    // ---- revenue ----
+    const totalRev = orders.reduce((s,o)=>s+(o.amount||0),0);
+    const completeRev = orders.filter(o=>o.paymentStatus==='complete').reduce((s,o)=>s+(o.amount||0),0);
+    const pendingRev = orders.filter(o=>o.paymentStatus!=='complete').reduce((s,o)=>s+(o.amount||0),0);
+    document.getElementById('revTotal').textContent = '₹'+totalRev.toLocaleString('en-IN');
+    document.getElementById('revComplete').textContent = '₹'+completeRev.toLocaleString('en-IN');
+    document.getElementById('revPending').textContent = '₹'+pendingRev.toLocaleString('en-IN');
+
+    // ---- Super Admin dashboard revenue cards ----
+    const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+    const todayRev = orders.filter(o => o.createdAt && o.createdAt.toDate && o.createdAt.toDate() >= startOfToday)
+                            .reduce((s,o)=>s+(o.amount||0),0);
+    const admToday = document.getElementById('admRevToday');
+    const admComplete = document.getElementById('admRevComplete');
+    const admPending = document.getElementById('admRevPending');
+    if(admToday) admToday.textContent = '₹'+todayRev.toLocaleString('en-IN');
+    if(admComplete) admComplete.textContent = '₹'+completeRev.toLocaleString('en-IN');
+    if(admPending) admPending.textContent = '₹'+pendingRev.toLocaleString('en-IN');
+
+    // ---- Business Report: KPIs ----
+    const kpiOrders = document.getElementById('kpiTotalOrders');
+    if(kpiOrders){
+      const activeOrders = orders.filter(o=>o.status!=='cancelled');
+      const cancelledCount = orders.filter(o=>o.status==='cancelled').length;
+      const completedCount = orders.filter(o=>o.status==='served').length;
+      const activeRev = activeOrders.reduce((s,o)=>s+(o.amount||0),0);
+      const avgOrder = activeOrders.length ? (activeRev / activeOrders.length) : 0;
+      const completionRate = orders.length ? Math.round((completedCount / orders.length) * 100) : 0;
+      const gstSettings = window.lastSettings || {};
+      const gstPct = gstSettings.gstPercent ?? 5;
+      const gstCollected = gstSettings.gstEnabled ? Math.round(activeRev * gstPct/100) : 0;
+
+      kpiOrders.textContent = orders.length;
+      document.getElementById('kpiTotalRevenue').textContent = '₹'+activeRev.toLocaleString('en-IN');
+      document.getElementById('kpiAvgOrder').textContent = '₹'+Math.round(avgOrder).toLocaleString('en-IN');
+      document.getElementById('kpiCompletion').textContent = completionRate + '%';
+      const kpiGst = document.getElementById('kpiGstCollected');
+      if(kpiGst) kpiGst.textContent = gstSettings.gstEnabled ? '₹'+gstCollected.toLocaleString('en-IN') : '—';
+      const kpiCanc = document.getElementById('kpiCancelled');
+      if(kpiCanc) kpiCanc.textContent = cancelledCount;
+
+      // ---- Orders by Type bar chart (dine-in vs takeaway vs parcel) ----
+      const types = ['Dine-In','Takeaway','Home Delivery'];
+      const typeCounts = types.map(t => activeOrders.filter(o=>o.orderType===t).length);
+      const maxType = Math.max(1, ...typeCounts);
+      const typeLabels = { 'Dine-In':'Dine-In', 'Takeaway':'Takeaway', 'Home Delivery':'Parcel' };
+      document.getElementById('chartOrdersByType').innerHTML = types.map((t,i) => `
+        <div class="bar-row">
+          <span class="bar-label">${typeLabels[t]}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${(typeCounts[i]/maxType*100)}%"></div></div>
+          <span class="bar-value">${typeCounts[i]}</span>
+        </div>`).join('');
+
+      // ---- Sales trend: Daily / Weekly / Monthly (re-rendered by setTrendPeriod) ----
+      window.renderSalesTrend(activeOrders);
+
+      // ---- Top & Least Selling Items ----
+      const itemCounts = {};
+      activeOrders.forEach(o => (o.items||[]).forEach(it => {
+        itemCounts[it.name] = (itemCounts[it.name] || 0) + (it.qty || 1);
+      }));
+      const sortedItems = Object.entries(itemCounts).sort((a,b)=>b[1]-a[1]);
+      const topItems = sortedItems.slice(0,6);
+      const leastItems = sortedItems.slice(-6).reverse();
+      const maxItemQty = Math.max(1, ...topItems.map(t=>t[1]));
+      const maxLeastQty = Math.max(1, ...leastItems.map(t=>t[1]));
+
+      const topItemsEl = document.getElementById('chartTopItems');
+      if(topItemsEl){
+        topItemsEl.innerHTML = topItems.length ? topItems.map(([name,qty]) => `
+          <div class="bar-row">
+            <span class="bar-label" style="width:160px;">${name}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${(qty/maxItemQty*100)}%"></div></div>
+            <span class="bar-value">${qty}</span>
+          </div>`).join('') : '<p style="font-size:13px; color:#9a8a72; text-align:center;">No item-level sales yet.</p>';
+      }
+      const leastItemsEl = document.getElementById('chartLeastItems');
+      if(leastItemsEl){
+        leastItemsEl.innerHTML = (sortedItems.length >= 2) ? leastItems.map(([name,qty]) => `
+          <div class="bar-row">
+            <span class="bar-label" style="width:160px;">${name}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${(qty/maxLeastQty*100)}%; background:linear-gradient(90deg,#C9412D,#7a2010);"></div></div>
+            <span class="bar-value">${qty}</span>
+          </div>`).join('') : '<p style="font-size:13px; color:#9a8a72; text-align:center;">Not enough item variety yet to show this.</p>';
+      }
+
+      // ---- Payment Method Report ----
+      const methods = [...new Set(activeOrders.map(o=>o.paymentMethod||'UPI'))];
+      const methodStats = methods.map(m => {
+        const mOrders = activeOrders.filter(o=>(o.paymentMethod||'UPI')===m);
+        return { m, count: mOrders.length, rev: mOrders.reduce((s,o)=>s+(o.amount||0),0) };
+      }).sort((a,b)=>b.rev-a.rev);
+      const maxMethodRev = Math.max(1, ...methodStats.map(x=>x.rev));
+      const pmEl = document.getElementById('chartPaymentMethod');
+      if(pmEl){
+        pmEl.innerHTML = methodStats.length ? methodStats.map(x => `
+          <div class="bar-row">
+            <span class="bar-label">${x.m}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${(x.rev/maxMethodRev*100)}%"></div></div>
+            <span class="bar-value">₹${Math.round(x.rev).toLocaleString('en-IN')}</span>
+          </div>`).join('') : '<p style="font-size:13px; color:#9a8a72; text-align:center;">No payments recorded yet.</p>';
+      }
+
+      // ---- GST Report ----
+      const gstEl = document.getElementById('chartGstReport');
+      if(gstEl){
+        if(!gstSettings.gstEnabled){
+          gstEl.innerHTML = '<p style="font-size:13px; color:#9a8a72; text-align:center;">GST is currently OFF. Turn it on in Restaurant Settings above to see this report.</p>';
+        } else {
+          gstEl.innerHTML = `
+            <div class="bar-row"><span class="bar-label" style="width:160px;">GST Rate</span><span class="bar-value" style="width:auto;">${gstPct}%</span></div>
+            <div class="bar-row"><span class="bar-label" style="width:160px;">Taxable Sales</span><span class="bar-value" style="width:auto;">₹${activeRev.toLocaleString('en-IN')}</span></div>
+            <div class="bar-row"><span class="bar-label" style="width:160px;">GST Collected</span><span class="bar-value" style="width:auto;">₹${gstCollected.toLocaleString('en-IN')}</span></div>
+            <div class="bar-row"><span class="bar-label" style="width:160px;">Total incl. GST</span><span class="bar-value" style="width:auto;">₹${(activeRev+gstCollected).toLocaleString('en-IN')}</span></div>
+            <div class="bar-row"><span class="bar-label" style="width:160px;">GSTIN</span><span class="bar-value" style="width:auto;">${gstSettings.gstin||'Not set'}</span></div>`;
+        }
+      }
+
+      // ---- Staff Performance ----
+      const staffStats = {};
+      activeOrders.forEach(o => {
+        if(!o.lastUpdatedBy) return;
+        if(!staffStats[o.lastUpdatedBy]) staffStats[o.lastUpdatedBy] = { count:0, rev:0 };
+        staffStats[o.lastUpdatedBy].count++;
+        staffStats[o.lastUpdatedBy].rev += (o.amount||0);
+      });
+      const staffList = Object.entries(staffStats).sort((a,b)=>b[1].count-a[1].count);
+      const maxStaffCount = Math.max(1, ...staffList.map(s=>s[1].count));
+      const staffEl = document.getElementById('chartStaffPerf');
+      if(staffEl){
+        staffEl.innerHTML = staffList.length ? staffList.map(([name,s]) => `
+          <div class="bar-row">
+            <span class="bar-label" style="width:160px;">${name}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${(s.count/maxStaffCount*100)}%"></div></div>
+            <span class="bar-value">${s.count} orders</span>
+          </div>`).join('') : '<p style="font-size:13px; color:#9a8a72; text-align:center;">No status updates recorded by staff yet.</p>';
+      }
+    }
+
+    const revBody = document.getElementById('revTableBody');
+    revBody.innerHTML = orders.length ? orders.map(o => `
+      <tr>
+        <td>${fmtOrderId(o)}</td>
+        <td>${fmtDateTime(o)}</td>
+        <td>${o.name}</td>
+        <td>${o.paymentMethod||'UPI'}</td>
+        <td>₹${(o.amount||0).toLocaleString('en-IN')}</td>
+        <td><span class="status-pill ${o.paymentStatus==='complete'?'complete':'pending'}" style="cursor:pointer" onclick="cyclePaymentStatus('${o.id}','${o.paymentStatus}')">${o.paymentStatus}</span></td>
+      </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:#9a8a72;">No orders yet.</td></tr>';
+    }, err => console.warn('Orders listener error (check Firestore rules):', err.message));
+  };
+
+  // start once for guests (order placement + public dashboard/revenue reads,
+  // if your rules allow it), and it gets restarted on every login/logout below
+  startOrdersListener();
+</script>
+
+</body>
+</html>
