@@ -356,6 +356,7 @@
   <button data-view="kitchen" id="btnKitchen" style="display:none;">Kitchen</button>
   <button data-view="revenue" id="btnRevenue" style="display:none;">Revenue</button>
   <button data-view="admin" id="btnAdmin" style="display:none;">Super Admin</button>
+  <button data-view="platform" id="btnPlatform" style="display:none;">Platform</button>
   <button data-view="login" id="btnLogin">Staff Login</button>
   <button id="btnLogout" onclick="doLogout()" style="display:none; background:transparent; border:1px solid rgba(255,255,255,.25); color:#FFD79A;">Logout</button>
   <span id="authBadge" style="display:none; align-self:center; margin-left:6px; font-size:12px; color:#FFD79A; padding:8px 4px;"></span>
@@ -991,9 +992,6 @@
       <p style="text-align:center; font-size:12.5px; margin-top:20px; color:#7a6a55;">
         New staff? <a href="#" onclick="switchView('signup'); return false;" style="color:var(--maroon); text-decoration:underline;">Sign up with an invite code</a>
       </p>
-      <p style="text-align:center; font-size:12.5px; margin-top:8px; color:#7a6a55;">
-        New restaurant? <a href="#" onclick="switchView('newrestaurant'); return false;" style="color:var(--maroon); text-decoration:underline;">Set up your own restaurant here</a>
-      </p>
     </div>
 
     <div id="loggedInBox" style="display:none; text-align:center;">
@@ -1026,37 +1024,42 @@
   </div>
 </div>
 
-<!-- ================= NEW RESTAURANT ONBOARDING ================= -->
-<div class="view-panel" id="view-newrestaurant">
-  <div class="order-wrap" style="max-width:440px;">
-    <h2>Set Up Your Restaurant</h2>
-    <p class="sub">Creates a brand-new, fully isolated restaurant space — your data never mixes with anyone else's.</p>
+<!-- ================= PLATFORM ADMIN: manage all restaurants ================= -->
+<div class="view-panel" id="view-platform">
+  <div class="dash-wrap">
+    <div class="dash-head"><h2>Platform Admin — All Restaurants</h2></div>
 
-    <div class="field"><label>Restaurant Name</label><input type="text" id="nrName" placeholder="e.g. Spice Route"></div>
-    <div class="field"><label>Your Name (Owner)</label><input type="text" id="nrOwnerName" placeholder="e.g. Rohan Mehta"></div>
-    <div class="field"><label>Email</label><input type="email" id="nrEmail" placeholder="owner@example.com"></div>
-    <div class="field"><label>Create Password</label><input type="password" id="nrPassword" placeholder="At least 6 characters"></div>
-
-    <div id="nrMsg" style="display:none; margin-bottom:16px; font-size:13px; text-align:center;"></div>
-    <div class="order-submit">
-      <button class="btn btn-fill" style="width:100%;" id="nrBtn" onclick="doCreateRestaurant()">Create My Restaurant</button>
+    <div style="background:var(--white); border-radius:6px; padding:26px; margin-bottom:24px; box-shadow:0 8px 22px rgba(43,33,24,.08); max-width:520px;">
+      <p style="font-size:13px; color:#7a6a55; margin-bottom:18px; line-height:1.7;">
+        Create a new restaurant, then share the setup link + code with its owner — they create their own login,
+        so your session here never changes.
+      </p>
+      <div class="field"><label>Restaurant Name</label><input type="text" id="nrName" placeholder="e.g. Spice Route"></div>
+      <div id="nrMsg" style="display:none; margin-bottom:16px; font-size:13px; text-align:center;"></div>
+      <button class="btn btn-fill" style="width:100%;" id="nrBtn" onclick="doCreateRestaurant()">Create Restaurant</button>
     </div>
-    <p style="text-align:center; font-size:12.5px; margin-top:20px; color:#7a6a55;">
-      Already have an account? <a href="#" onclick="switchView('login'); return false;" style="color:var(--maroon); text-decoration:underline;">Sign in</a>
-    </p>
+
+    <table class="order-table">
+      <thead><tr><th>Name</th><th>Restaurant ID</th><th>Created</th><th>Action</th></tr></thead>
+      <tbody id="platformRestaurantsBody">
+        <tr><td colspan="4" style="text-align:center;color:#9a8a72;">Loading...</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
 <script>
   window.currentRole = null;   // null = guest, not logged in
   window.currentPerms = {};    // { canEdit, viewDashboard, updateOrderStatus, viewRevenue, managePayments }
+  window.isPlatformAdmin = false;
 
   function allowedViews(){
-    const v = ['website','order','login','confirmation','signup','newrestaurant','myorders'];
+    const v = ['website','order','login','confirmation','signup','myorders'];
     const p = window.currentPerms || {};
     if(p.viewDashboard) v.push('dashboard','kitchen');
     if(p.viewRevenue) v.push('revenue');
     if(window.currentRole === 'superadmin') v.push('admin');
+    if(window.isPlatformAdmin) v.push('platform');
     return v;
   }
 
@@ -1180,6 +1183,7 @@
     const btnKitchen = document.getElementById('btnKitchen');
     const btnRev = document.getElementById('btnRevenue');
     const btnAdmin = document.getElementById('btnAdmin');
+    const btnPlatform = document.getElementById('btnPlatform');
     const btnLogin = document.getElementById('btnLogin');
     const btnLogout = document.getElementById('btnLogout');
     const badge = document.getElementById('authBadge');
@@ -1190,6 +1194,7 @@
     btnKitchen.style.display = perms.viewDashboard ? 'inline-block' : 'none';
     btnRev.style.display = perms.viewRevenue ? 'inline-block' : 'none';
     btnAdmin.style.display = role === 'superadmin' ? 'inline-block' : 'none';
+    btnPlatform.style.display = window.isPlatformAdmin ? 'inline-block' : 'none';
 
     if(role){
       btnLogin.style.display = 'none';
@@ -1233,11 +1238,13 @@
         const perms = effectivePermissions(role, data);
         window.currentRole = role;
         window.currentPerms = perms;
+        window.isPlatformAdmin = !!(data && data.isPlatformAdmin === true);
         window.currentUserName = (data && data.name) || user.email || 'Staff';
         window.currentUserUid = user.uid;
         updateAuthUI(role, user.email, perms);
         startOrdersListener();
-        if(!role){
+        if(window.isPlatformAdmin && typeof window.loadPlatformRestaurants === 'function') window.loadPlatformRestaurants();
+        if(!role && !window.isPlatformAdmin){
           const msg = document.getElementById('loginMsg');
           msg.style.display='block'; msg.style.color='#C9412D';
           msg.textContent = 'Signed in, but no role is set for this account yet. Ask Super Admin to add one in Firestore → users → your UID → role.';
@@ -1245,14 +1252,16 @@
       }catch(e){
         window.currentRole = null;
         window.currentPerms = {};
+        window.isPlatformAdmin = false;
         updateAuthUI(null, null, {});
       }
     } else {
       window.currentRole = null;
       window.currentPerms = {};
+      window.isPlatformAdmin = false;
       updateAuthUI(null, null, {});
       startOrdersListener();
-      if(document.getElementById('view-dashboard').classList.contains('active') || document.getElementById('view-revenue').classList.contains('active') || document.getElementById('view-admin').classList.contains('active')){
+      if(document.getElementById('view-dashboard').classList.contains('active') || document.getElementById('view-revenue').classList.contains('active') || document.getElementById('view-admin').classList.contains('active') || document.getElementById('view-platform').classList.contains('active')){
         switchView('website');
       }
     }
@@ -1345,49 +1354,90 @@
     }
   };
 
+  window.loadPlatformRestaurants = async function(){
+    const body = document.getElementById('platformRestaurantsBody');
+    if(!body) return;
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9a8a72;">Loading...</td></tr>';
+    try{
+      const snap = await getDocs(collection(db,'restaurants'));
+      const rows = snap.docs.map(d => {
+        const r = d.data();
+        const created = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleDateString('en-IN') : '—';
+        return `<tr>
+          <td>${r.restaurantName || '—'}</td>
+          <td style="font-family:'Marcellus'; letter-spacing:.04em;">${d.id}</td>
+          <td>${created}</td>
+          <td><button class="btn btn-small" style="background:#C9412D;color:#fff;" onclick="deleteRestaurant('${d.id}','${(r.restaurantName||d.id).replace(/'/g,"&#39;")}')">Delete</button></td>
+        </tr>`;
+      }).join('');
+      body.innerHTML = rows || '<tr><td colspan="4" style="text-align:center;color:#9a8a72;">No restaurants yet — create one above.</td></tr>';
+    }catch(e){
+      body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#C9412D;">Could not load restaurants — check Firestore rules.</td></tr>';
+      console.warn(e);
+    }
+  };
+
+  window.deleteRestaurant = async function(restaurantId, name){
+    if(!confirm(`Permanently delete "${name}" and ALL its data (orders, menu, staff, invites)? This cannot be undone.`)) return;
+    try{
+      // delete every document across every collection tagged with this restaurantId
+      const collections = ['menu','orders','invites','serviceRequests','users'];
+      for(const colName of collections){
+        const snap = await getDocs(query(collection(db,colName), where('restaurantId','==',restaurantId)));
+        for(const d of snap.docs){ await deleteDoc(d.ref); }
+      }
+      await deleteDoc(doc(db,'content', restaurantId)).catch(()=>{});
+      await deleteDoc(doc(db,'restaurants', restaurantId));
+      alert(`"${name}" has been deleted.`);
+      window.loadPlatformRestaurants();
+    }catch(e){
+      alert('Could not fully delete this restaurant — check Firestore rules for Platform Admin delete access.');
+      console.warn(e);
+    }
+  };
+
   window.doCreateRestaurant = async function(){
     const name = document.getElementById('nrName').value.trim();
-    const ownerName = document.getElementById('nrOwnerName').value.trim();
-    const email = document.getElementById('nrEmail').value.trim();
-    const password = document.getElementById('nrPassword').value;
     const msg = document.getElementById('nrMsg');
     const btn = document.getElementById('nrBtn');
 
-    if(!name || !ownerName || !email || !password){
+    if(!name){
       msg.style.display='block'; msg.style.color='#C9412D';
-      msg.textContent = 'Please fill in every field.';
+      msg.textContent = 'Please enter a restaurant name.';
       return;
     }
-    btn.textContent = 'Creating your restaurant...';
+    btn.textContent = 'Creating...';
     try{
-      // build a readable, likely-unique restaurant ID from the name + a random suffix
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,30) || 'restaurant';
       const suffix = Array.from({length:4}, () => '23456789abcdefghjkmnpqrstuvwxyz'[Math.floor(Math.random()*32)]).join('');
       const newRestaurantId = `${slug}-${suffix}`;
+      const inviteCode = Array.from({length:6}, () => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*32)]).join('');
 
       await setDoc(doc(db,'restaurants', newRestaurantId), {
         restaurantName: name, tableCount: 24, gstEnabled: false, gstPercent: 5, createdAt: serverTimestamp()
       });
 
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db,'users', cred.user.uid), {
-        name: ownerName, email, role: 'superadmin',
-        restaurantId: newRestaurantId,
-        permissions: { canEdit:true, viewDashboard:true, updateOrderStatus:true, viewRevenue:true, managePayments:true, editMenu:true }
+      // a founding "superadmin" invite scoped to the new restaurant — its owner
+      // signs up themselves using this, so THIS platform-admin session never changes
+      await setDoc(doc(db,'invites', inviteCode), {
+        role: 'superadmin', restaurantId: newRestaurantId,
+        permissions: { canEdit:true, viewDashboard:true, updateOrderStatus:true, viewRevenue:true, managePayments:true, editMenu:true },
+        used:false, createdAt: serverTimestamp()
       });
 
+      const setupLink = window.location.origin + window.location.pathname + '?r=' + newRestaurantId;
       msg.style.display='block'; msg.style.color='var(--green)';
-      msg.textContent = 'Restaurant created! Redirecting you to your new dashboard...';
-      // reload the page scoped to the new restaurantId — onAuthStateChanged then logs them straight in
-      setTimeout(() => {
-        window.location.href = window.location.pathname + '?r=' + newRestaurantId;
-      }, 1200);
+      msg.innerHTML = `Restaurant created! Send the owner this link and code:<br>
+        <strong>${setupLink}</strong><br>
+        Invite code: <strong style="font-size:16px; letter-spacing:.1em;">${inviteCode}</strong><br>
+        <span style="font-size:11.5px; color:#7a6a55;">They open the link → Staff Login → "Sign up with an invite code" → enter this code.</span>`;
+      document.getElementById('nrName').value = '';
+      btn.textContent = 'Create Restaurant';
+      window.loadPlatformRestaurants();
     }catch(e){
       msg.style.display='block'; msg.style.color='#C9412D';
-      msg.textContent = e.code === 'auth/email-already-in-use'
-        ? 'That email is already registered — try signing in instead.'
-        : (e.code === 'auth/weak-password' ? 'Password should be at least 6 characters.' : 'Could not create restaurant: ' + e.message);
-      btn.textContent = 'Create My Restaurant';
+      msg.textContent = 'Could not create restaurant: ' + e.message;
+      btn.textContent = 'Create Restaurant';
     }
   };
 
